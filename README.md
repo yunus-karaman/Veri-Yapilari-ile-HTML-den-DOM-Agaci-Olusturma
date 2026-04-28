@@ -1,21 +1,14 @@
 # Veri Yapıları ile HTML'den DOM Ağacı Oluşturma
 
-Bu depo, proje geliştirme sürecinde faz bazlı bir branch yapısı ile kullanılacaktır.
+Bu depo, proje geliştirme surecinde sade ve benzersiz bir branch yapisi ile kullanilacaktir.
 
-## Branch Akışı
+## Branch Yapisi
 
 - `main`: Stabil ve teslime hazır sürüm
-- `develop`: Ortak entegrasyon dalı
-- `phase-1`: Faz 1 entegrasyon dalı
-- `phase-2`: Faz 2 entegrasyon dalı
-- `phase-3`: Faz 3 entegrasyon dalı
+- `phase1-data-structures`
+- `phase1-dom-parser`
+- `phase2-traversal-search`
+- `phase2-analysis-testing`
+- `phase3-ui-dom-visualizer`
 
-## Görev Branch'leri
-
-- `task/phase-1-data-structures`
-- `task/phase-1-dom-parser`
-- `task/phase-2-traversal-search`
-- `task/phase-2-analysis-testing`
-- `task/phase-3-ui-dom-visualizer`
-
-Önerilen akış: görev branch'i -> ilgili faz branch'i -> `develop` -> `main`
+Onerilen akis: calisma branch'i -> `main`
