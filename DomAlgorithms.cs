@@ -38,3 +38,26 @@ namespace DomParser
         }
     }
 }
+
+
+        public static List<DomNode> SearchByTagName(DomNode root, string targetTag)
+        {
+            List<DomNode> foundNodes = new List<DomNode>();
+            
+            if (root == null) return foundNodes;
+
+           
+            if (root.TagName == targetTag)
+            {
+                foundNodes.Add(root);
+            }
+
+           
+            foreach (var child in root.Children)
+            {
+           
+                foundNodes.AddRange(SearchByTagName(child, targetTag));
+            }
+
+            return foundNodes;
+        }
