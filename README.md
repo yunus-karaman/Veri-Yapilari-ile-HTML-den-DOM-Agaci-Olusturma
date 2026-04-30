@@ -22,14 +22,23 @@ Saglanan ozellikler:
 
 ## Calistirma
 
+### Faz 3 Arayuzu
+
 1. Depoyu ac.
 2. `index.html` dosyasini bir tarayicida calistir.
 3. Ornek HTML yukleyebilir veya kendi HTML metnini girip `DOM Olustur` butonuna basabilirsin.
 
+### C# Kutuphane
+
+1. Proje klasorunde `dotnet build` calistir.
+2. `HtmlParser` sinifi ile HTML metnini DOM agacina cevir.
+3. `HashTable`, `DomAlgorithms` ve `TreeAnalyzer` siniflari ile agac uzerinde arama ve analiz yap.
+
 ## Branch Akisi
 
-- `main`: Stabil ve teslime hazir surum
-- `develop`: Ortak entegrasyon dali
-- `phase-1`: Faz 1 entegrasyon dali
-- `phase-2`: Faz 2 entegrasyon dali
-- `phase-3`: Faz 3 entegrasyon dali
+- `main`: Tum fazlarin entegre edildigi ana dal
+- `phase1-data-structures`: `DomNode`, `Queue`, `Stack`, `HashTable`
+- `phase1-dom-parser`: C# tabanli HTML parser
+- `phase2-analysis-testing`: `TreeAnalyzer` ve analiz adimlari
+- `phase2-traversal-search`: DFS, BFS ve arama algoritmalari
+- `phase3-ui-dom-visualizer`: HTML/JS arayuzu ve DOM gorsellestirme

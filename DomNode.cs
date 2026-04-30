@@ -7,6 +7,7 @@ namespace DomParser
     {
         public string TagName { get; set; }
         public string Id { get; set; }
+        public string TextContent { get; set; }
         public List<string> Classes { get; set; }
         public DomNode Parent { get; set; }
         public List<DomNode> Children { get; set; }
@@ -15,6 +16,7 @@ namespace DomParser
         {
             TagName = tagName;
             Id = null;
+            TextContent = string.Empty;
             Classes = new List<string>();
             Parent = null;
             Children = new List<DomNode>();

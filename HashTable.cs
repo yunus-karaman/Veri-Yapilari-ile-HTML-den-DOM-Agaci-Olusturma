@@ -31,9 +31,8 @@ namespace DomParser
         // Gelen ID ye göre bir indeks numarası üreten hash fonksiyonu
         private int GetBucketIndex(string key)
         {
-            int hashCode = key.GetHashCode();
-            int index = hashCode % capacity;
-            return Math.Abs(index);
+            int hashCode = key.GetHashCode() & 0x7fffffff;
+            return hashCode % capacity;
         }
 
         // Tabloya yeni bir ID ve DomNode çifti ekleme

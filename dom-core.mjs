@@ -1,4 +1,20 @@
 let nextNodeId = 0;
+const VOID_ELEMENTS = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr",
+]);
 
 class StackNode {
   constructor(value, next = null) {
@@ -184,7 +200,7 @@ function parseAttributes(rawTag) {
 }
 
 export function tokenize(html) {
-  const tokenPattern = /<!--[\s\S]*?-->|<\/?[^>]+>|[^<]+/g;
+  const tokenPattern = /<!--[\s\S]*?-->|<![^>]*>|<\/?[^>]+>|[^<]+/g;
   const tokens = [];
   let match;
 
@@ -195,14 +211,19 @@ export function tokenize(html) {
       continue;
     }
 
+    if (value.startsWith("<!")) {
+      continue;
+    }
+
     if (value.startsWith("</")) {
       tokens.push({ type: "closeTag", value });
       continue;
     }
 
     if (value.startsWith("<")) {
+      const { tagName } = parseTag(value);
       tokens.push({
-        type: value.endsWith("/>") ? "selfClosingTag" : "openTag",
+        type: value.endsWith("/>") || VOID_ELEMENTS.has(tagName) ? "selfClosingTag" : "openTag",
         value,
       });
       continue;
@@ -223,7 +244,7 @@ function parseTag(token) {
     .trim();
 
   const parts = normalized.split(/\s+/);
-  const tagName = parts[0];
+  const tagName = parts[0].toLowerCase();
 
   return {
     tagName,
@@ -262,7 +283,10 @@ export function buildDomTree(html) {
       continue;
     }
 
-    const closingTag = token.value.replace(/^<\//, "").replace(/>$/, "").trim();
+    const closingTag = token.value.replace(/^<\//, "").replace(/>$/, "").trim().toLowerCase();
+    if (stack.count === 1) {
+      throw new Error(`Etiket uyusmazligi: </${closingTag}> beklenmeyen konumda.`);
+    }
     const current = stack.pop();
 
     if (!current || current.tagName !== closingTag) {
