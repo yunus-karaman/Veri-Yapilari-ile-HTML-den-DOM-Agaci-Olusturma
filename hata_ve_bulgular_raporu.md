@@ -1,20 +1,18 @@
 # HATA VE BULGULAR RAPORU
 
-Bu dokuman iki parcadan olusur:
+Bu rapor iki bölümden oluşmaktadır;
 
-- Ilk bolumde repoda daha once yer alan hata ve bulgular korunmustur.
+- İlk bolümde repoda daha önce yer alan hata ve bulgular raporlanmıştır.
 - Ikinci bolumde yeni inceleme ve duzeltme surecinde eklenen guncel bulgular yer alir.
 
 
 ## ilk bölüm hata ve bulguları
 
 ### 1. `phase1-data-structures`
-#### Muhsin - N-ary Tree + Queue
 
 **Yapılanlar:**
-- DomNode.cs (N-ary Tree) eklendi
-- Queue.cs (Queue) eklendi
-- Pull Request açıldı
+- DomNode.cs (N-ary Tree) eklendi.
+- Queue.cs (Queue) eklendi.
 
 
 ### 2. `phase1-dom-parser`
@@ -59,80 +57,79 @@ Bu dokuman iki parcadan olusur:
 ### 5. `phase3-ui-dom-visualizer`
 
 
-**Tamamlanan baslica calismalar:**
+**Tamamlanan başlıca çalışmalar:**
 - HTML girdi alanı ve DOM ağacı görüntüleme arayüzü eklendi.
-- Arama cubugu ile `id`, `class` ve `tag` bazlı sorgu desteği eklendi.
-- Düğüm seçimi, vurgulama, derinlik ve alt ağac bilgileri gosterildi.
+- Arama çubuğu ile `id`, `class` ve `tag` bazlı sorgu desteği eklendi.
+- Düğüm seçimi, vurgulama, derinlik ve alt ağac bilgileri gösterildi.
 
 ##  Guncel Inceleme ve Yeni Duzeltmeler
 
 
 ### 1. `phase1-data-structures`
 
-**Durum:** Temel veri yapilari mevcut ve entegrasyonda kullaniliyor.
+**Durum:** Temel veri yapıları mevcut ve entegrasyonda kullanılıyor.
 
 **Kontrol sonucu:**
 - `DomNode`, `Stack`, `Queue` ve `HashTable` siniflari projede aktif olarak kullaniliyor.
 - `HashTable` icin indeks hesabi daha guvenli hale getirildi.
 
 **Yeni duzeltme:**
-- Negatif hash degeri olusmasi halinde gecersiz indeks riski daha guvenli bir yontemle kapatildi.
+- Negatif hash değeri oluşması halinde geçersiz indeks riski daha güvenli bir yöntemle kapatıldı.
 
 **Uygulanan cozum:**
-- Indeks hesabi `hashCode & 0x7fffffff` yaklasimina cevrildi.
+- Indeks hesabı `hashCode & 0x7fffffff` yaklaşımına çevrildi.
 
 ### 2. `phase1-dom-parser`
 
 
 **Tespit edilen hatalar:**
-- `HtmlParser.Parse` hicbir zaman DOM olusturmuyordu.
-- `Tokenize` bos liste donduruyordu.
-- `CreateNodeFromTagContent` hic dugum uretmiyordu.
-- Projede `.csproj` olmadigi icin C# tarafi dogrudan build edilemiyordu.
+- `HtmlParser.Parse` hiçbir zaman DOM oluşturmuyordu.
+- `Tokenize` boş liste döndürüyordu.
+- `CreateNodeFromTagContent` hic dugum üretmiyordu.
+- Projede `.csproj` olmadığı için C# tarafı doğrudan build edilemiyordu.
 
 **Uygulanan cozumler:**
-- Calisan bir `HtmlParser` uygulandi.
-- Tokenizer; yorumlari ve `DOCTYPE` bildirimlerini atlayacak sekilde tamamlandi.
+- Calişan bir `HtmlParser` uygulandı.
+- Tokenizer; yorumları ve `DOCTYPE` bildirimlerini atlayacak sekilde tamamlandı.
 - `br`, `meta`, `img` gibi bos HTML etiketleri parser tarafinda desteklendi.
-- `id` ve `class` ayrisma mantigi eklendi, `ElementTable` indekslemesi aktif hale getirildi.
+- `id` ve `class` ayrişma mantiği eklendi, `ElementTable` indekslemesi aktif hale getirildi.
 - `DomParser.csproj` eklenerek proje `dotnet build` ile derlenebilir duruma getirildi.
-- Metin dugumleri icin `DomNode` sinifina `TextContent` alani eklendi.
+- Metin duğumleri için `DomNode` sınıfına `TextContent` alanı eklendi.
 
 ### 3. `phase2-analysis-testing`
 
-**Durum:** Analiz metotlari calisiyor; entegrasyonu bloke eden yeni hata gorulmedi.
+**Durum:** Analiz metotları calişıyor; entegrasyonu bloke eden yeni hata gorulmedi.
 
 **Kontrol sonucu:**
 - `TreeAnalyzer` metotlari mevcut veri modeliyle uyumlu.
-- Parser tarafi calisir hale geldigi icin bu fazin metotlari artik gercek DOM agaci uzerinde kullanilabilir.
+- Parser tarafi çalışır hale geldiği için bu fazın metotlari artık gerçek DOM ağaci üzerinde kullanilabilir.
 
 ### 4. `phase2-traversal-search`
 
-**Durum:** DFS, BFS ve arama metotlari entegrasyon icinde calisiyor.
+**Durum:** DFS, BFS ve arama metotlari entegrasyon içinde calışıyor.
 
 **Kontrol sonucu:**
-- `DomAlgorithms` sinifi derleme mantigi acisindan tutarli.
-- Buyuk/kucuk harf duyarsiz tag aramasi korunuyor.
+- `DomAlgorithms` sınıfı derleme mantigi açısından tutarlı.
+- Büyük/küçük harf duyarsız tag araması korunuyor.
 - Null kontrolleri mevcut.
 
 ### 5. `phase3-ui-dom-visualizer`
 
-**Durum:** Arayuzun ayristirma cekirdeginde iki kritik uyumluluk hatasi duzeltildi.
+**Durum:** Arayüzün ayrıştırma çekirdeğinde iki kritik uyumluluk hatasi duzeltildi.
 
 **Tespit edilen hatalar:**
-- Standart `<!DOCTYPE html>` girdileri ayrismiyordu.
-- HTML bos etiketleri yalnizca XHTML tarzi `/>` ile calisiyordu.
+- Standart `<!DOCTYPE html>` girdileri ayrışmıyordu.
+- HTML bos etiketleri yalnızca XHTML tarzi `/>` ile calışıyordu.
 
 **Uygulanan cozumler:**
-- `dom-core.mjs` icinde `DOCTYPE` ve benzeri bildirimler token akisindan cikarildi.
-- HTML bos etiketleri icin `VOID_ELEMENTS` listesi eklendi.
-- Kapanis etiketi karsilastirmasi kucuk-buyuk harf duyarsiz hale getirildi.
-- Beklenmeyen kapanis etiketlerinde daha kontrollu hata akisi saglandi.
+- `dom-core.mjs` içinde `DOCTYPE` ve benzeri bildirimler token akışından çıkarıldı.
+- HTML boş etiketleri için `VOID_ELEMENTS` listesi eklendi.
+- Kapanis etiketi karsilastirmasi küçük-büyük harf duyarsız hale getirildi.
+- Beklenmeyen kapaniş etiketlerinde daha kontrollü hata akışı sağlandı.
 
 ## Genel Sonuc
 
-- JavaScript tabanli DOM gorsellestirici standart HTML girdilerine daha uyumlu calisiyor.
-- C# parser artik gercekten DOM agaci uretiyor.
+- JavaScript tabanlı DOM gorsellestirici standart HTML girdilerine daha uyumlu calışıyor.
+- C# parser artık gercekten DOM ağacı üretiyor.
 - C# kaynaklari proje dosyasi ile birlikte derlenebilir durumda.
-- Branch dokumantasyonu repo gercegiyle uyumlu hale getirildi.
 
