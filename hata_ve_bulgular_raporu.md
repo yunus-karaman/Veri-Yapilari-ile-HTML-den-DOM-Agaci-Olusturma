@@ -2,19 +2,11 @@
 
 Bu dokuman iki parcadan olusur:
 
-- Ilk bolumde repoda daha once yer alan orijinal hata ve bulgular korunmustur.
+- Ilk bolumde repoda daha once yer alan hata ve bulgular korunmustur.
 - Ikinci bolumde yeni inceleme ve duzeltme surecinde eklenen guncel bulgular yer alir.
 
-Kontrol edilen uzak branch'lar:
 
-- `main`
-- `phase1-data-structures`
-- `phase1-dom-parser`
-- `phase2-analysis-testing`
-- `phase2-traversal-search`
-- `phase3-ui-dom-visualizer`
-
-## ilk sürüm hata ve bulguları
+## ilk bölüm hata ve bulguları
 
 ### 1. `phase1-data-structures`
 #### Muhsin - N-ary Tree + Queue
