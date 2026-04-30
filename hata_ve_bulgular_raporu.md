@@ -8,7 +8,20 @@
 
 ### 2. `phase1-dom-parser`
 
+**Son commit:** `2d23be1`
 
+**Push durumu:** Uzak repoya gonderildi.
+
+**1. Temel Bulgular ve Mimari Kararlar**
+  * Stack Kapasite Yönetimi: HTML metninin ayrıştırılması ve hiyerarşik derinliğin takibi için kullanılacak Stack yapısı, statik sabit boyutlu bir dizi yerine dinamik liste altyapısıyla kurgulandı. Bu sayede, testlerde çok derin iç içe geçmiş HTML etiketleri geldiğinde Stack Overflow yaşanması engellendi.
+  * Hash Table Çakışma Yönetimi: HTML elemanlarının id özelliklerini indekslerken iki farklı ID'nin aynı yuvaya düşmesi (collision) ihtimaline karşı "Separate Chaining" (Bağlı Liste Zincirleme) algoritması özel bir iç sınıf yazılarak çözüldü.
+  * Zaman Karmaşıklığı Başarısı: Hash Table tasarımı sayesinde proje yönergesinde istenen getElementById işlemi test edildi ve düğüm sayısından bağımsız olarak ortalama $O(1)$ zaman karmaşıklığı hedefine ulaşıldı.
+
+**2. Karşılaşılan Hatalar ve ÇözümlerHata**
+   * Bug 01: Negatif Hash İndeksi ÜretimiDurum: Hash Table dizisi için indeks numarası üretilirken, bazı string ID değerlerinde sistemin yerleşik fonksiyonunun negatif değerler döndürdüğü ve bunun IndexOutOfRangeException hatasına yol açtığı tespit edildi.
+   Çözüm: İndeks hesaplama fonksiyonuna mutlak değer Math.Abs() işlemi eklenerek dizinin her zaman geçerli ve pozitif bir yuvaya işaret etmesi sağlandı.
+   * Bug 02: Boş Stackten Eleman Çıkarma RiskiDurum: Hatalı yazılmış bir HTML dokümanı simüle edildiğinde, boş olan Stack yapısından Pop veya Peek yapılmaya çalışılmasının sistemi çökerttiği gözlemlendi.
+   Çözüm: Stack sınıfının Pop ve Peek metotlarına Count == 0 kontrolü eklendi. Sistem tamamen çökmek yerine durumu anlayıp kontrollü bir şekilde InvalidOperationException hatası fırlatacak hale getirildi.
 
 ### 3. `phase2-analysis-testing`
 
