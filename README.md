@@ -1,21 +1,35 @@
 # Veri Yapıları ile HTML'den DOM Ağacı Oluşturma
 
-Bu depo, proje geliştirme sürecinde faz bazlı bir branch yapısı ile kullanılacaktır.
+Bu depo, basitlestirilmis bir HTML metnini ayrıştırıp hiyerarsik bir DOM agacina donusturen proje icin
+faz bazli calisma yapisini ve Faz 3 gorsellestirme arayuzunu icerir.
 
-## Branch Akışı
+## Faz 3 Arayuzu
 
-- `main`: Stabil ve teslime hazır sürüm
-- `develop`: Ortak entegrasyon dalı
-- `phase-1`: Faz 1 entegrasyon dalı
-- `phase-2`: Faz 2 entegrasyon dalı
-- `phase-3`: Faz 3 entegrasyon dalı
+Arayuz dosyalari:
 
-## Görev Branch'leri
+- `index.html`
+- `styles.css`
+- `dom-core.mjs`
+- `script.mjs`
 
-- `task/phase-1-data-structures`
-- `task/phase-1-dom-parser`
-- `task/phase-2-traversal-search`
-- `task/phase-2-analysis-testing`
-- `task/phase-3-ui-dom-visualizer`
+Saglanan ozellikler:
 
-Önerilen akış: görev branch'i -> ilgili faz branch'i -> `develop` -> `main`
+- Sol panelde kod editoru benzeri HTML girdi alani
+- Sag panelde acilir-kapanir DOM agaci
+- `id="header"`, `class="item"`, `#header`, `.item` ve `div` benzeri sorgularla arama
+- Eslesen dugumleri agac uzerinde vurgulama
+- Dugum ayrintisi, alt agac boyutu ve derinlik gostergeleri
+
+## Calistirma
+
+1. Depoyu ac.
+2. `index.html` dosyasini bir tarayicida calistir.
+3. Ornek HTML yukleyebilir veya kendi HTML metnini girip `DOM Olustur` butonuna basabilirsin.
+
+## Branch Akisi
+
+- `main`: Stabil ve teslime hazir surum
+- `develop`: Ortak entegrasyon dali
+- `phase-1`: Faz 1 entegrasyon dali
+- `phase-2`: Faz 2 entegrasyon dali
+- `phase-3`: Faz 3 entegrasyon dali
