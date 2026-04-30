@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOM Agaci Gorsellestirici</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Faz 3</p>
+        <h1>HTML'den DOM Agaci Gorsellestirici</h1>
+        <p class="lede">
+          Basitlestirilmis HTML girdisini ayrisir, DOM agacini olusturur ve id, class ya da tag sorgularini
+          vurgulayarak gosterir.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="load-sample" class="button secondary" type="button">Ornek HTML</button>
+        <button id="parse-dom" class="button primary" type="button">DOM Olustur</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel panel-editor">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Sol Panel</p>
+            <h2>HTML Girdisi</h2>
+          </div>
+          <button id="reset-editor" class="button ghost" type="button">Temizle</button>
+        </div>
+
+        <div class="editor-frame">
+          <pre id="line-numbers" class="line-numbers" aria-hidden="true">1</pre>
+          <textarea id="html-input" spellcheck="false" aria-label="HTML girdisi"></textarea>
+        </div>
+
+        <div class="metric-row">
+          <article class="metric-card">
+            <span class="metric-label">Toplam dugum</span>
+            <strong id="node-count">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Maksimum derinlik</span>
+            <strong id="max-depth">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Text dugumu</span>
+            <strong id="text-count">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel panel-tree">
+        <div class="panel-header panel-header-wide">
+          <div>
+            <p class="panel-kicker">Sag Panel</p>
+            <h2>DOM Agaci</h2>
+          </div>
+          <div class="search-controls">
+            <input
+              id="search-input"
+              type="text"
+              placeholder='id="header", class="menu", #hero, .item, div'
+              aria-label="Arama sorgusu"
+            >
+            <select id="search-strategy" aria-label="Arama stratejisi">
+              <option value="auto">Otomatik</option>
+              <option value="bfs">BFS</option>
+              <option value="dfs">DFS</option>
+            </select>
+            <button id="run-search" class="button secondary" type="button">Ara</button>
+          </div>
+        </div>
+
+        <div class="status-bar">
+          <span id="status-message" class="status-pill neutral">Hazir</span>
+          <span id="search-summary" class="status-pill subtle">Sonuc yok</span>
+        </div>
+
+        <div class="tree-layout">
+          <div id="tree-root" class="tree-surface" role="tree" aria-label="DOM agaci"></div>
+
+          <aside class="inspector">
+            <h3>Dugum Ayrintisi</h3>
+            <dl id="node-details" class="detail-list">
+              <div>
+                <dt>Etiket</dt>
+                <dd>-</dd>
+              </div>
+              <div>
+                <dt>id</dt>
+                <dd>-</dd>
+              </div>
+              <div>
+                <dt>class</dt>
+                <dd>-</dd>
+              </div>
+              <div>
+                <dt>Derinlik</dt>
+                <dd>-</dd>
+              </div>
+              <div>
+                <dt>Kardes sayisi</dt>
+                <dd>-</dd>
+              </div>
+              <div>
+                <dt>Alt agac boyutu</dt>
+                <dd>-</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./script.mjs"></script>
+</body>
+</html>
