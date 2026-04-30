@@ -1,44 +1,74 @@
-# Veri Yapıları ile HTML'den DOM Ağacı Oluşturma
+# Veri Yapilari ile HTML'den DOM Agaci Olusturma
 
-Bu depo, basitlestirilmis bir HTML metnini ayrıştırıp hiyerarsik bir DOM agacina donusturen proje icin
-faz bazli calisma yapisini ve Faz 3 gorsellestirme arayuzunu icerir.
+Bu proje, basitlestirilmis HTML girdisini ayrıştırarak DOM agaci olusturmak, bu agac uzerinde veri yapilari ve algoritmalarla islem yapmak ve sonucu bir arayuzde gorsellestirmek icin hazirlandi.
 
-## Faz 3 Arayuzu
+Repo iki ana parcadan olusur:
 
-Arayuz dosyalari:
+- C# tarafinda DOM dugumu, parser, hash table, stack, queue ve analiz algoritmalari
+- JavaScript tarafinda HTML girdisini ayrıştıran ve DOM agacini gorsellestiren arayuz
 
-- `index.html`
-- `styles.css`
-- `dom-core.mjs`
-- `script.mjs`
+## Proje Kapsami
 
-Saglanan ozellikler:
+Projede su yetenekler bulunur:
 
-- Sol panelde kod editoru benzeri HTML girdi alani
-- Sag panelde acilir-kapanir DOM agaci
-- `id="header"`, `class="item"`, `#header`, `.item` ve `div` benzeri sorgularla arama
-- Eslesen dugumleri agac uzerinde vurgulama
-- Dugum ayrintisi, alt agac boyutu ve derinlik gostergeleri
+- HTML etiketlerinden hiyerarsik DOM agaci olusturma
+- `id`, `class` ve `tag` bazli arama
+- DFS ve BFS ile dugum dolasimi
+- Agac derinligi, kardes dugumler ve alt agac boyutu analizi
+- Tarayici uzerinde DOM agaci gorsellestirme
+
+## Dosya Yapisi
+
+### C# cekirdegi
+
+- `DomNode.cs`: DOM dugum modeli
+- `Parser.cs`: HTML parser
+- `HashTable.cs`: `id` indeksleme yapisi
+- `Stack.cs`: parser icin stack
+- `Queue.cs`: BFS icin queue
+- `DomAlgorithms.cs`: DFS, BFS ve arama algoritmalari
+- `TreeAnalyzer.cs`: derinlik, kardes ve alt agac analizleri
+- `DomParser.csproj`: .NET proje dosyasi
+
+### Arayuz
+
+- `index.html`: uygulama iskeleti
+- `styles.css`: arayuz stilleri
+- `dom-core.mjs`: tarayici tarafindaki parser ve agac mantigi
+- `script.mjs`: arayuz etkilesimi ve render akisi
 
 ## Calistirma
 
-### Faz 3 Arayuzu
+### Arayuz
 
-1. Depoyu ac.
-2. `index.html` dosyasini bir tarayicida calistir.
+1. Repo klasorunu ac.
+2. `index.html` dosyasini tarayicida ac.
 3. Ornek HTML yukleyebilir veya kendi HTML metnini girip `DOM Olustur` butonuna basabilirsin.
 
-### C# Kutuphane
+### C# kutuphanesi
 
 1. Proje klasorunde `dotnet build` calistir.
-2. `HtmlParser` sinifi ile HTML metnini DOM agacina cevir.
-3. `HashTable`, `DomAlgorithms` ve `TreeAnalyzer` siniflari ile agac uzerinde arama ve analiz yap.
+2. `HtmlParser` ile HTML metnini DOM agacina cevir.
+3. `DomAlgorithms` ve `TreeAnalyzer` ile agac uzerinde arama ve analiz yap.
 
-## Branch Akisi
+## Guncel Durum
 
-- `main`: Tum fazlarin entegre edildigi ana dal
-- `phase1-data-structures`: `DomNode`, `Queue`, `Stack`, `HashTable`
-- `phase1-dom-parser`: C# tabanli HTML parser
-- `phase2-analysis-testing`: `TreeAnalyzer` ve analiz adimlari
+Son guncellemelerle birlikte:
+
+- C# parser artik calisir durumda
+- `DOCTYPE` bildirimleri destekleniyor
+- `br`, `meta`, `img` gibi bos HTML etiketleri parser tarafinda duzgun ele aliniyor
+- Proje `dotnet build` ile derlenebiliyor
+
+## Branch Yapisi
+
+Uzak repodaki mevcut branch'lar:
+
+- `main`: tum fazlarin entegre edildigi ana dal
+- `phase1-data-structures`: temel veri yapilari
+- `phase1-dom-parser`: C# parser gelistirmeleri
+- `phase2-analysis-testing`: agac analizi ve testleme adimlari
 - `phase2-traversal-search`: DFS, BFS ve arama algoritmalari
-- `phase3-ui-dom-visualizer`: HTML/JS arayuzu ve DOM gorsellestirme
+- `phase3-ui-dom-visualizer`: HTML/JS arayuzu ve gorsellestirme
+
+Detayli hata ve bulgular icin `hata_ve_bulgular_raporu.md` dosyasina bakabilirsin.
