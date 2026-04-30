@@ -69,7 +69,9 @@ Kontrol edilen uzak branch'lar:
 
 ### 4. `phase2-traversal-search`
 
-**Son commit:** `6f27eaf`
+**Orijinal raporda gecen commit referansi:** `6f27eaf`
+
+**Not:** Bu commit bilgisi, korunmus tarihsel rapor metninden gelmektedir. Guncel uzak branch basi `origin/phase2-traversal-search` icin `b2c8290` commit'idir.
 
 **Push durumu:** uzak sunucuya push edildi.
 
