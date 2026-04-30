@@ -3,6 +3,18 @@
 
 
 ### 1. `phase1-data-structures`
+#### Muhsin - N-ary Tree + Queue
+
+**Yapılanlar:**
+- DomNode.cs (N-ary Tree) eklendi
+- Queue.cs (Queue) eklendi
+- Pull Request açıldı
+
+**Karşılaşılan Hatalar:**
+- Henüz yok
+
+**Çözümler:**
+- Yok
 
 
 
