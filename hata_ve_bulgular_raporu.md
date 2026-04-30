@@ -3,7 +3,7 @@
 Bu rapor iki bölümden oluşmaktadır;
 
 - İlk bolümde repoda daha önce yer alan hata ve bulgular raporlanmıştır.
-- Ikinci bolumde yeni inceleme ve duzeltme surecinde eklenen guncel bulgular yer alir.
+- İkinci bölümde yeni inceleme ve duzeltme sürecinde eklenen güncel bulgular yer almaktadır.
 
 
 ## ilk bölüm hata ve bulguları
