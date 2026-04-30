@@ -37,7 +37,21 @@
 
 ### 3. `phase2-analysis-testing`
 
+* **Son commit:** `65ff5ca`
 
+* **Push Durumu:** uzak sunucuya push edildi.
+
+**Yapılanlar:**
+- DOM ağacının hiyerarşik analizi için `TreeAnalyzer.cs` sınıfı oluşturuldu.
+- Ağaç derinliği hesaplama (`CalculateDepth`), kardeş düğümleri bulma (`GetSiblings`) ve etiket ismine göre arama (`FindElementsByTagName`) metotları eklendi.
+
+**Bulgular ve Mimari Kararlar:**
+- **Statik Erişim:** Ağaç analizi yapan tüm metotlar, projenin her yerinden instance (nesne) oluşturulmadan doğrudan kullanılabilmesi için `static` olarak yapılandırıldı.
+- **Rekürsif (Özyineli) Yaklaşım:** `CalculateDepth` metodunda derinlik tespiti için ağaç yapısına en uygun olan rekürsif yaklaşım kullanıldı. Her alt düğüm kendi derinliğini hesaplayarak maksimum derinliği geriye döner.
+
+**Karşılaşılan Hatalar ve Çözümler:**
+- **Hata 01: Kök Düğümde (Root) Null Referans Hatası**
+  - *Çözüm:* Metodun başlangıcına `if (node == null || node.Parent == null)` güvence kontrolü eklendi. Böylece üst düğümü olmayan hedef çağrılarında program çökmeden boş bir liste döndürüldü.
 
 ### 4. `phase2-traversal-search`
 
