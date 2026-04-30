@@ -14,7 +14,7 @@ Kontrol edilen uzak branch'lar:
 - `phase2-traversal-search`
 - `phase3-ui-dom-visualizer`
 
-## Bolum A - Orijinal Rapor Icerigi
+## ilk sürüm hata ve bulguları
 
 ### 1. `phase1-data-structures`
 #### Muhsin - N-ary Tree + Queue
@@ -24,17 +24,8 @@ Kontrol edilen uzak branch'lar:
 - Queue.cs (Queue) eklendi
 - Pull Request açıldı
 
-**Karşılaşılan Hatalar:**
-- Henüz yok
-
-**Çözümler:**
-- Yok
 
 ### 2. `phase1-dom-parser`
-
-**Son commit:** `2d23be1`
-
-**Push durumu:** Uzak repoya gonderildi.
 
 **1. Temel Bulgular ve Mimari Kararlar**
 - Stack Kapasite Yönetimi: HTML metninin ayrıştırılması ve hiyerarşik derinliğin takibi için kullanılacak Stack yapısı, statik sabit boyutlu bir dizi yerine dinamik liste altyapısıyla kurgulandı. Bu sayede, testlerde çok derin iç içe geçmiş HTML etiketleri geldiğinde Stack Overflow yaşanması engellendi.
@@ -51,9 +42,7 @@ Kontrol edilen uzak branch'lar:
 
 ### 3. `phase2-analysis-testing`
 
-**Son commit:** `65ff5ca`
 
-**Push durumu:** uzak sunucuya push edildi.
 
 **Yapılanlar:**
 - DOM ağacının hiyerarşik analizi için `TreeAnalyzer.cs` sınıfı oluşturuldu.
@@ -69,12 +58,7 @@ Kontrol edilen uzak branch'lar:
 
 ### 4. `phase2-traversal-search`
 
-**Orijinal raporda gecen commit referansi:** `6f27eaf`
-
 **Not:** Bu commit bilgisi, korunmus tarihsel rapor metninden gelmektedir. Guncel uzak branch basi `origin/phase2-traversal-search` icin `b2c8290` commit'idir.
-
-**Push durumu:** uzak sunucuya push edildi.
-
 **Çözülen Hatalar**
 - Kapsam (Scope) Hatası: Sınıf dışında kalan `SearchByTagName` metodu `DomAlgorithms` sınıfı içerisine taşınarak projenin derlenmesini (compile) engelleyen kritik hata giderildi.
 - Büyük/Küçük Harf Duyarlılığı: HTML standartlarına uymayan kesin eşitlik (`==`) araması yerine `StringComparison.OrdinalIgnoreCase` kullanıldı.
@@ -82,18 +66,14 @@ Kontrol edilen uzak branch'lar:
 
 ### 5. `phase3-ui-dom-visualizer`
 
-**Son commit:** `13b054e`
-
-**Push durumu:** Uzak repoya gonderildi.
 
 **Tamamlanan baslica calismalar:**
 - HTML girdi alanı ve DOM ağacı görüntüleme arayüzü eklendi.
 - Arama cubugu ile `id`, `class` ve `tag` bazlı sorgu desteği eklendi.
 - Düğüm seçimi, vurgulama, derinlik ve alt ağac bilgileri gosterildi.
 
-## Bolum B - Guncel Inceleme ve Yeni Duzeltmeler
+##  Guncel Inceleme ve Yeni Duzeltmeler
 
-Not: README icindeki eski `develop`, `phase-1`, `phase-2`, `phase-3` adlandirmasi repo gercegiyle uyusmuyordu. Dokumantasyon, uzak repodaki mevcut branch adlarina gore duzeltildi.
 
 ### 1. `phase1-data-structures`
 
@@ -111,7 +91,6 @@ Not: README icindeki eski `develop`, `phase-1`, `phase-2`, `phase-3` adlandirmas
 
 ### 2. `phase1-dom-parser`
 
-**Durum:** Bu fazdaki en kritik eksik burada bulundu ve kapatildi.
 
 **Tespit edilen hatalar:**
 - `HtmlParser.Parse` hicbir zaman DOM olusturmuyordu.
@@ -160,10 +139,6 @@ Not: README icindeki eski `develop`, `phase-1`, `phase-2`, `phase-3` adlandirmas
 
 ## Genel Sonuc
 
-Bu guncelleme sonrasinda:
-
-- Orijinal rapor korunmus oldu.
-- Yeni hata ve cozumler ayri bir bolumde belgelenmis oldu.
 - JavaScript tabanli DOM gorsellestirici standart HTML girdilerine daha uyumlu calisiyor.
 - C# parser artik gercekten DOM agaci uretiyor.
 - C# kaynaklari proje dosyasi ile birlikte derlenebilir durumda.
