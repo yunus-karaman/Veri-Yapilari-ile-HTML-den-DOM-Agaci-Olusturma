@@ -1,166 +1,208 @@
-# Güncel Hata ve Bulgular
+# Güncel Hata ve Bulgular Taslağı
 
-## İnceleme Tarihi
+## Amaç
 
-20 Mayıs 2026
+Bu dosya, proje üzerinde yapılacak güncel incelemelerde bulunan hata, eksik, risk ve çözüm önerilerini düzenli şekilde kaydetmek için hazırlanmış bir taslaktır.
 
-## Genel Durum
+Bu taslakta gerçek hata veya bulgu yer almaz. Her ekip üyesi kendi sorumluluk alanında yaptığı inceleme sonucunda ilgili bölümü doldurmalıdır.
 
-Proje mevcut durumda `dotnet build` ile derlenebilir durumdadır. C# tarafında temel DOM parser, veri yapıları ve algoritmalar çalışır hale getirilmiştir. JavaScript tarafında da HTML girdisinden DOM ağacı oluşturma ve arayüzde görselleştirme akışı bulunmaktadır.
+## Kullanım Kuralları
 
-Bu dosya, mevcut rapordan bağımsız olarak güncel incelemede dikkat edilmesi gereken yeni sorunları, riskleri ve çözüm önerilerini takip etmek için oluşturulmuştur.
+- Her bulgu açık, kısa ve teknik olarak anlaşılır yazılmalıdır.
+- Aynı problem birden fazla yerde tekrar edilmemelidir.
+- Bir bulgu yazılırken mutlaka etkilenen dosya veya modül belirtilmelidir.
+- Çözüm önerisi uygulanabilir ve test edilebilir olmalıdır.
+- Her çözümden sonra test sonucu eklenmelidir.
+- Emin olunmayan konular kesin hata gibi yazılmamalı, "risk" veya "kontrol edilmeli" olarak belirtilmelidir.
+
+## Bulgu Yazım Formatı
+
+Her yeni bulgu aşağıdaki formatla eklenmelidir:
+
+```markdown
+### Bulgu Başlığı
+
+**Kategori:** Hata / Eksik / Risk / İyileştirme
+
+**Sorumlu Kişi:** Ad Soyad
+
+**Etkilenen Dosyalar:**
+- Dosya adı veya modül adı
+
+**Problem:**
+Problemin kısa ve net açıklaması.
+
+**Neden Önemli:**
+Bu problemin projeye etkisi.
+
+**Önerilen Çözüm:**
+Uygulanacak çözüm yaklaşımı.
+
+**Uygulanan Çözüm:**
+Çözüm tamamlandıysa yapılan değişikliklerin özeti.
+
+**Test Sonucu:**
+Hangi kontrollerin yapıldığı ve sonucun ne olduğu.
+
+**Durum:** Açık / Devam Ediyor / Çözüldü / Kontrol Edilecek
+```
 
 ## 1. Parser ve HTML Ayrıştırma
 
-### Problem
+Bu bölüm HTML girdisinin ayrıştırılması, token üretimi, etiket eşleştirme, hatalı HTML kontrolü ve DOM ağacı oluşturma süreci için kullanılmalıdır.
 
-C# tarafındaki `Parser.cs` ve tarayıcı tarafındaki `dom-core.mjs` benzer HTML ayrıştırma mantığını ayrı ayrı uygulamaktadır. Bu durum iki tarafın zamanla farklı davranmasına yol açabilir.
+### Eklenecek Bulgular
 
-### Etkilenen Dosyalar
+```markdown
+### Bulgu Başlığı
 
-- `Parser.cs`
-- `dom-core.mjs`
+**Kategori:**
 
-### Risk
+**Sorumlu Kişi:**
 
-Aynı HTML girdisi C# tarafında farklı, JavaScript tarafında farklı DOM ağacı üretebilir. Bu da proje sunumunda veya test sürecinde tutarsız sonuçlara neden olabilir.
+**Etkilenen Dosyalar:**
 
-### Önerilen Çözüm
+**Problem:**
 
-Ortak bir test senaryosu listesi hazırlanmalıdır. Aynı HTML örnekleri hem C# parser hem de JavaScript parser üzerinde denenmeli ve beklenen ağaç yapısı karşılaştırılmalıdır.
+**Neden Önemli:**
 
-### Test Senaryoları
+**Önerilen Çözüm:**
 
-- Normal iç içe HTML etiketi
-- `DOCTYPE` içeren HTML
-- Yorum satırı içeren HTML
-- `br`, `img`, `meta`, `input` gibi kapanış etiketi olmayan HTML etiketleri
-- Hatalı kapanış etiketi içeren HTML
+**Uygulanan Çözüm:**
+
+**Test Sonucu:**
+
+**Durum:**
+```
 
 ## 2. Veri Yapıları
 
-### Problem
+Bu bölüm Stack, Queue, HashTable ve DOM düğüm modeli gibi temel veri yapılarıyla ilgili incelemeler için kullanılmalıdır.
 
-`HashTable`, `Stack` ve `Queue` yapıları temel olarak çalışmaktadır. Ancak bazı kenar durumlar için davranışlar daha net hale getirilmelidir.
+### Eklenecek Bulgular
 
-### Etkilenen Dosyalar
+```markdown
+### Bulgu Başlığı
 
-- `HashTable.cs`
-- `Stack.cs`
-- `Queue.cs`
-- `dom-core.mjs`
+**Kategori:**
 
-### Risk
+**Sorumlu Kişi:**
 
-Boş veya geçersiz anahtarlarla işlem yapılırsa beklenmeyen hata oluşabilir. Ayrıca hata mesajları ve davranışlar C# ile JavaScript tarafında tam olarak aynı değildir.
+**Etkilenen Dosyalar:**
 
-### Önerilen Çözüm
+**Problem:**
 
-Veri yapıları için küçük bir test listesi oluşturulmalıdır. Boş stack, boş queue, aynı id değerinin tekrar eklenmesi ve hash çakışması gibi durumlar açıkça test edilmelidir.
+**Neden Önemli:**
 
-### Test Senaryoları
+**Önerilen Çözüm:**
 
-- Boş stack üzerinden `Pop`
-- Boş stack üzerinden `Peek`
-- Boş queue üzerinden `Dequeue`
-- Aynı id ile HashTable değer güncelleme
-- Farklı id değerlerinde çakışma yönetimi
+**Uygulanan Çözüm:**
 
-## 3. DOM Algoritmaları ve Ağaç Analizi
+**Test Sonucu:**
 
-### Problem
+**Durum:**
+```
 
-`DomAlgorithms.cs` içindeki DFS ve BFS metotları sonucu liste olarak döndürmek yerine doğrudan konsola yazdırmaktadır. Bu yaklaşım test yazmayı ve sonuçları başka yerde kullanmayı zorlaştırır.
+## 3. DOM Algoritmaları ve Arama
 
-### Etkilenen Dosyalar
+Bu bölüm DFS, BFS, id arama, class arama, tag arama ve algoritma çıktılarının doğrulanması için kullanılmalıdır.
 
-- `DomAlgorithms.cs`
-- `TreeAnalyzer.cs`
+### Eklenecek Bulgular
 
-### Risk
+```markdown
+### Bulgu Başlığı
 
-Algoritmalar çalışsa bile otomatik olarak doğrulanması zorlaşır. Proje büyüdüğünde veya arayüzle entegrasyon gerektiğinde bu yapı yetersiz kalabilir.
+**Kategori:**
 
-### Önerilen Çözüm
+**Sorumlu Kişi:**
 
-DFS ve BFS metotları ziyaret edilen düğümleri `List<DomNode>` olarak döndürmelidir. Konsola yazdırma işlemi algoritmanın içinde değil, çağıran tarafta yapılmalıdır.
+**Etkilenen Dosyalar:**
 
-### Test Senaryoları
+**Problem:**
 
-- DFS sırasının beklenen sırayla eşleşmesi
-- BFS sırasının beklenen sırayla eşleşmesi
-- `null` kök düğüm için boş sonuç dönmesi
-- Tag, class ve id aramalarının doğru düğümleri bulması
+**Neden Önemli:**
 
-## 4. Derinlik Hesaplama Tutarlılığı
+**Önerilen Çözüm:**
 
-### Problem
+**Uygulanan Çözüm:**
 
-`TreeAnalyzer.CalculateDepth` metodu ağacın yüksekliğini hesaplamaktadır. JavaScript tarafında ise `calculateDepth` bir düğümün köke olan uzaklığını hesaplamaktadır. Aynı isimli kavram iki tarafta farklı anlamda kullanılmaktadır.
+**Test Sonucu:**
 
-### Etkilenen Dosyalar
+**Durum:**
+```
 
-- `TreeAnalyzer.cs`
-- `dom-core.mjs`
-- `script.mjs`
+## 4. Arayüz ve Görselleştirme
 
-### Risk
+Bu bölüm HTML giriş alanı, DOM ağacı gösterimi, arama arayüzü, hata mesajları ve kullanıcı deneyimiyle ilgili incelemeler için kullanılmalıdır.
 
-Sunumda veya raporda "derinlik" kavramı karışabilir. Bir yerde ağaç yüksekliği, başka bir yerde düğüm seviyesi anlamına gelebilir.
+### Eklenecek Bulgular
 
-### Önerilen Çözüm
+```markdown
+### Bulgu Başlığı
 
-Kavramlar ayrılmalıdır:
+**Kategori:**
 
-- `CalculateTreeHeight`: Ağacın toplam yüksekliği
-- `CalculateNodeDepth`: Bir düğümün köke uzaklığı
+**Sorumlu Kişi:**
 
-Bu ayrım README ve rapor dosyalarında da açıklanmalıdır.
+**Etkilenen Dosyalar:**
 
-### Test Senaryoları
+**Problem:**
 
-- Tek kök düğümlü ağaç
-- Birden fazla seviyeli iç içe ağaç
-- Yaprak düğümün derinlik hesabı
-- Kök düğümün derinlik hesabı
+**Neden Önemli:**
 
-## 5. Test ve Dokümantasyon Eksikliği
+**Önerilen Çözüm:**
 
-### Problem
+**Uygulanan Çözüm:**
 
-Proje derlenebilir durumdadır, fakat davranışları kanıtlayan düzenli otomatik test yapısı bulunmamaktadır.
+**Test Sonucu:**
 
-### Etkilenen Dosyalar
+**Durum:**
+```
 
-- `DomParser.csproj`
-- `README.md`
-- `hata_ve_bulgular_raporu.md`
-- Yeni eklenecek test dosyaları
+## 5. Test, Dokümantasyon ve Entegrasyon
 
-### Risk
+Bu bölüm test senaryoları, proje dokümantasyonu, branch birleştirme süreci, raporlama ve genel proje kontrolü için kullanılmalıdır.
 
-Kodda yapılan değişiklikler daha sonra parser, arama veya görselleştirme tarafında fark edilmeden davranış bozukluğuna neden olabilir.
+### Eklenecek Bulgular
 
-### Önerilen Çözüm
+```markdown
+### Bulgu Başlığı
 
-C# tarafı için ayrı bir test projesi eklenmelidir. JavaScript tarafı için de temel parser ve arama senaryoları ayrı test edilmelidir.
+**Kategori:**
 
-### Test Senaryoları
+**Sorumlu Kişi:**
 
-- Parser geçerli HTML için DOM ağacı oluşturmalı
-- Parser hatalı HTML için kontrollü hata vermeli
-- `id`, `class` ve `tag` aramaları doğru çalışmalı
-- DFS ve BFS sıraları doğrulanmalı
-- Arayüz boş girdi ve hatalı HTML durumunda bozulmamalı
+**Etkilenen Dosyalar:**
 
-## İş Bölümü Önerisi
+**Problem:**
 
-Bu güncel bulgular 5 kişilik ekip için aşağıdaki şekilde bölüştürülebilir:
+**Neden Önemli:**
 
-1. Parser ve HTML ayrıştırma sorumlusu
-2. Veri yapıları sorumlusu
-3. DOM algoritmaları ve arama sorumlusu
-4. Arayüz ve görselleştirme sorumlusu
-5. Test, dokümantasyon ve entegrasyon sorumlusu
+**Önerilen Çözüm:**
 
-Her kişi kendi alanındaki problemi, çözüm yaklaşımını ve test sonucunu bu dosyada güncel tutmalıdır.
+**Uygulanan Çözüm:**
+
+**Test Sonucu:**
+
+**Durum:**
+```
+
+## İş Bölümü Takibi
+
+| Alan | Sorumlu Kişi | Durum |
+| --- | --- | --- |
+| Parser ve HTML Ayrıştırma |  |  |
+| Veri Yapıları |  |  |
+| DOM Algoritmaları ve Arama |  |  |
+| Arayüz ve Görselleştirme |  |  |
+| Test, Dokümantasyon ve Entegrasyon |  |  |
+
+## Genel Kontrol Listesi
+
+- [ ] Her ekip üyesi kendi alanını inceledi.
+- [ ] Bulgular standart formata göre yazıldı.
+- [ ] Etkilenen dosyalar belirtildi.
+- [ ] Çözüm önerileri eklendi.
+- [ ] Uygulanan çözümler yazıldı.
+- [ ] Test sonuçları eklendi.
+- [ ] Son kontrol yapıldı.
