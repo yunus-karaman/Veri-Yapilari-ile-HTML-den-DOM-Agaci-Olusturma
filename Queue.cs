@@ -14,7 +14,7 @@ namespace DomParser
         public T Dequeue()
         {
             if (list.Count == 0)
-                throw new System.Exception("Queue boş");
+    throw new InvalidOperationException("Queue boş");
 
             T value = list.First.Value;
             list.RemoveFirst();
@@ -23,9 +23,8 @@ namespace DomParser
 
         public T Peek()
         {
-            if (list.Count == 0)
-                throw new System.Exception("Queue boş");
-
+           if (list.Count == 0)
+    throw new InvalidOperationException("Queue boş");
             return list.First.Value;
         }
 
