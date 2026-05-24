@@ -2,9 +2,10 @@ import {
   analyzeSubtree,
   buildDomTree,
   calculateDepth,
-  flattenNodes,
+  flattenNodesWithDepth,
   formatNodeLabel,
   getSiblings,
+  resolveSearchPlan,
   searchTree,
 } from "./dom-core.mjs";
 
@@ -38,8 +39,8 @@ const elements = {
   parseButton: document.querySelector("#parse-dom"),
   sampleButton: document.querySelector("#load-sample"),
   resetButton: document.querySelector("#reset-editor"),
+  searchForm: document.querySelector(".search-controls"),
   searchInput: document.querySelector("#search-input"),
-  searchButton: document.querySelector("#run-search"),
   strategy: document.querySelector("#search-strategy"),
   treeRoot: document.querySelector("#tree-root"),
   statusMessage: document.querySelector("#status-message"),
@@ -53,6 +54,7 @@ const elements = {
 const state = {
   root: null,
   idIndex: null,
+  uidIndex: null,
   matches: [],
   selectedNodeId: null,
 };
@@ -75,9 +77,9 @@ function updateMetrics(root) {
     return;
   }
 
-  const nodes = flattenNodes(root).filter((node) => node.uid !== root.uid);
-  const maxDepth = nodes.reduce((depth, node) => Math.max(depth, calculateDepth(node)), 0);
-  const textCount = nodes.filter((node) => node.type === "text").length;
+  const nodes = flattenNodesWithDepth(root).filter(({ node }) => node.uid !== root.uid);
+  const maxDepth = nodes.reduce((depth, item) => Math.max(depth, item.depth), 0);
+  const textCount = nodes.filter(({ node }) => node.type === "text").length;
 
   elements.nodeCount.textContent = String(nodes.length);
   elements.maxDepth.textContent = String(maxDepth);
@@ -132,14 +134,14 @@ function createLabelContent(node) {
   return fragment;
 }
 
-function renderTreeNode(node, matches, selectedNodeId) {
+function renderTreeNode(node, matches, selectedNodeId, depth = 0) {
   const hasChildren = node.children.length > 0;
 
   if (hasChildren) {
     const details = document.createElement("details");
     details.className = nodeElementClass(node, matches, selectedNodeId);
     details.dataset.nodeId = node.uid;
-    details.open = calculateDepth(node) < 2 || matches.some((match) => match.uid === node.uid);
+    details.open = depth < 2 || matches.some((match) => match.uid === node.uid);
 
     const summary = document.createElement("summary");
     summary.dataset.nodeId = node.uid;
@@ -147,7 +149,7 @@ function renderTreeNode(node, matches, selectedNodeId) {
     details.append(summary);
 
     for (const child of node.children) {
-      details.append(renderTreeNode(child, matches, selectedNodeId));
+      details.append(renderTreeNode(child, matches, selectedNodeId, depth + 1));
     }
 
     return details;
@@ -173,7 +175,7 @@ function renderTree() {
   }
 
   for (const child of state.root.children) {
-    elements.treeRoot.append(renderTreeNode(child, state.matches, state.selectedNodeId));
+    elements.treeRoot.append(renderTreeNode(child, state.matches, state.selectedNodeId, 1));
   }
 }
 
@@ -198,8 +200,8 @@ function updateNodeDetails(node) {
 }
 
 function selectNode(nodeId) {
-  state.selectedNodeId = nodeId;
-  const node = flattenNodes(state.root).find((item) => item.uid === nodeId) || null;
+  const node = state.uidIndex?.get(nodeId) || null;
+  state.selectedNodeId = node ? nodeId : null;
   updateNodeDetails(node);
   renderTree();
 }
@@ -223,6 +225,7 @@ function runSearch() {
   }
 
   const query = elements.searchInput.value.trim();
+  const plan = resolveSearchPlan(query, elements.strategy.value);
   if (!query) {
     state.matches = [];
     elements.searchSummary.textContent = "Arama temizlendi";
@@ -232,15 +235,16 @@ function runSearch() {
 
   const matches = searchTree(state.root, state.idIndex, query, elements.strategy.value);
   state.matches = matches;
+  const strategyText = plan ? `Strateji: ${plan.label} ${plan.complexity}` : "Strateji yok";
 
   if (matches.length === 0) {
-    elements.searchSummary.textContent = `Eslesme bulunamadi: ${query}`;
+    elements.searchSummary.textContent = `Eslesme bulunamadi: ${query}. ${strategyText}`;
     setStatus("Arama tamamlandi", "neutral");
     renderTree();
     return;
   }
 
-  elements.searchSummary.textContent = `${matches.length} eslesme bulundu`;
+  elements.searchSummary.textContent = `${matches.length} eslesme bulundu. ${strategyText}`;
   setStatus("Arama tamamlandi", "neutral");
   renderTree();
   expandAncestors(matches[0]);
@@ -253,6 +257,7 @@ function parseAndRender() {
     const result = buildDomTree(elements.htmlInput.value);
     state.root = result.root;
     state.idIndex = result.idIndex;
+    state.uidIndex = result.uidIndex;
     state.matches = [];
     state.selectedNodeId = null;
     updateMetrics(result.root);
@@ -262,6 +267,7 @@ function parseAndRender() {
   } catch (error) {
     state.root = null;
     state.idIndex = null;
+    state.uidIndex = null;
     state.matches = [];
     state.selectedNodeId = null;
     updateMetrics(null);
@@ -289,6 +295,7 @@ elements.resetButton.addEventListener("click", () => {
   updateLineNumbers();
   state.root = null;
   state.idIndex = null;
+  state.uidIndex = null;
   state.matches = [];
   state.selectedNodeId = null;
   updateMetrics(null);
@@ -297,11 +304,9 @@ elements.resetButton.addEventListener("click", () => {
   elements.searchSummary.textContent = "Sonuc yok";
 });
 
-elements.searchButton.addEventListener("click", runSearch);
-elements.searchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    runSearch();
-  }
+elements.searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  runSearch();
 });
 
 elements.treeRoot.addEventListener("click", (event) => {
@@ -313,6 +318,14 @@ elements.treeRoot.addEventListener("click", (event) => {
   selectNode(target.dataset.nodeId);
 });
 
-elements.htmlInput.value = SAMPLE_HTML;
-updateLineNumbers();
-parseAndRender();
+function initialize() {
+  try {
+    elements.htmlInput.value = SAMPLE_HTML;
+    updateLineNumbers();
+    parseAndRender();
+  } catch (error) {
+    setStatus(`Baslangic ornegi yuklenemedi: ${error.message}`, "error");
+  }
+}
+
+initialize();

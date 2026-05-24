@@ -60,7 +60,7 @@
             <p class="panel-kicker">Sag Panel</p>
             <h2>DOM Agaci</h2>
           </div>
-          <div class="search-controls">
+          <form class="search-controls" role="search" aria-label="DOM agacinda ara">
             <input
               id="search-input"
               type="text"
@@ -72,11 +72,11 @@
               <option value="bfs">BFS</option>
               <option value="dfs">DFS</option>
             </select>
-            <button id="run-search" class="button secondary" type="button">Ara</button>
-          </div>
+            <button id="run-search" class="button secondary" type="submit">Ara</button>
+          </form>
         </div>
 
-        <div class="status-bar">
+        <div class="status-bar" aria-live="polite" aria-atomic="true">
           <span id="status-message" class="status-pill neutral">Hazir</span>
           <span id="search-summary" class="status-pill subtle">Sonuc yok</span>
         </div>

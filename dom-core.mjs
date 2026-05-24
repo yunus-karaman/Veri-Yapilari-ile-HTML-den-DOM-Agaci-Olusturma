@@ -1,4 +1,3 @@
-let nextNodeId = 0;
 const VOID_ELEMENTS = new Set([
   "area",
   "base",
@@ -150,15 +149,15 @@ export class HashTable {
   }
 }
 
-function createElementNode(tagName, attributes = {}) {
+function createElementNode(createUid, tagName, attributes = {}) {
   const classList = attributes.class
     ? attributes.class.split(/\s+/).filter(Boolean)
     : [];
 
   return {
-    uid: `node-${nextNodeId += 1}`,
+    uid: createUid(),
     type: "element",
-    tagName,
+    tagName: tagName.toLowerCase(),
     attributes,
     id: attributes.id || "",
     classList,
@@ -168,9 +167,9 @@ function createElementNode(tagName, attributes = {}) {
   };
 }
 
-function createTextNode(textContent) {
+function createTextNode(createUid, textContent) {
   return {
-    uid: `node-${nextNodeId += 1}`,
+    uid: createUid(),
     type: "text",
     tagName: "#text",
     attributes: {},
@@ -243,6 +242,10 @@ function parseTag(token) {
     .replace(/\/?>$/, "")
     .trim();
 
+  if (!normalized) {
+    throw new Error("Gecersiz HTML etiketi.");
+  }
+
   const parts = normalized.split(/\s+/);
   const tagName = parts[0].toLowerCase();
 
@@ -253,25 +256,31 @@ function parseTag(token) {
 }
 
 export function buildDomTree(html) {
-  nextNodeId = 0;
+  let nextNodeId = 0;
+  const createUid = () => `node-${nextNodeId += 1}`;
   const tokens = tokenize(html);
-  const root = createElementNode("document");
+  const root = createElementNode(createUid, "document");
   const stack = new Stack();
   const idIndex = new HashTable(211);
+  const uidIndex = new HashTable(503);
+
+  uidIndex.set(root.uid, root);
 
   stack.push(root);
 
   for (const token of tokens) {
     if (token.type === "text") {
-      const textNode = createTextNode(token.value.trim());
+      const textNode = createTextNode(createUid, token.value.trim());
       addChild(stack.peek(), textNode);
+      uidIndex.set(textNode.uid, textNode);
       continue;
     }
 
     if (token.type === "openTag" || token.type === "selfClosingTag") {
       const { tagName, attributes } = parseTag(token.value);
-      const node = createElementNode(tagName, attributes);
+      const node = createElementNode(createUid, tagName, attributes);
       addChild(stack.peek(), node);
+      uidIndex.set(node.uid, node);
 
       if (node.id) {
         idIndex.set(node.id, node);
@@ -289,7 +298,7 @@ export function buildDomTree(html) {
     }
     const current = stack.pop();
 
-    if (!current || current.tagName !== closingTag) {
+    if (!current || current.tagName.toLowerCase() !== closingTag.toLowerCase()) {
       throw new Error(`Etiket uyusmazligi: </${closingTag}> beklenmeyen konumda.`);
     }
   }
@@ -301,6 +310,7 @@ export function buildDomTree(html) {
   return {
     root,
     idIndex,
+    uidIndex,
     tokens,
   };
 }
@@ -380,6 +390,25 @@ export function flattenNodes(root) {
   return depthFirstSearch(root, () => true, []);
 }
 
+export function flattenNodesWithDepth(root) {
+  const nodes = [];
+
+  function walk(node, depth) {
+    if (!node) {
+      return;
+    }
+
+    nodes.push({ node, depth });
+
+    for (const child of node.children) {
+      walk(child, depth + 1);
+    }
+  }
+
+  walk(root, 0);
+  return nodes;
+}
+
 export function parseSearchQuery(query) {
   const normalized = query.trim();
 
@@ -413,16 +442,52 @@ export function parseSearchQuery(query) {
   return { mode: "tag", value: normalized };
 }
 
-export function searchTree(root, idIndex, query, strategy = "auto") {
+export function resolveSearchPlan(query, strategy = "auto") {
   const parsed = parseSearchQuery(query);
 
   if (!parsed) {
-    return [];
+    return null;
   }
 
   if (parsed.mode === "id" && strategy === "auto") {
+    return {
+      parsed,
+      label: "Hash indeks",
+      complexity: "O(1)",
+      traversal: null,
+      usesIndex: true,
+    };
+  }
+
+  const traversal = strategy === "dfs" ? "DFS" : "BFS";
+
+  return {
+    parsed,
+    label: traversal,
+    complexity: "O(n)",
+    traversal: traversal.toLowerCase(),
+    usesIndex: false,
+  };
+}
+
+export function searchTree(root, idIndex, query, strategy = "auto") {
+  const plan = resolveSearchPlan(query, strategy);
+
+  if (!plan) {
+    return [];
+  }
+
+  const { parsed } = plan;
+
+  if (plan.usesIndex) {
     const match = idIndex.get(parsed.value);
     return match ? [match] : [];
+  }
+
+  if (parsed.mode === "id") {
+    console.warn(
+      `ID aramasi ${plan.label} ile ${plan.complexity} tarama yapiyor. O(1) hash indeks icin Otomatik stratejiyi secin.`,
+    );
   }
 
   const predicate = (node) => {
@@ -437,7 +502,7 @@ export function searchTree(root, idIndex, query, strategy = "auto") {
     return node.tagName.toLowerCase() === parsed.value.toLowerCase();
   };
 
-  if (strategy === "dfs") {
+  if (plan.traversal === "dfs") {
     return depthFirstSearch(root, predicate);
   }
 
