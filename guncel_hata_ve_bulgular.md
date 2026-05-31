@@ -57,17 +57,16 @@
 
 ## phase2-traversal-search
 
-### Sınıf Tanımlarının Tekrarlanması
+```markdown
+### Bulgu Başlığı
+
 **Etkilenen Dosyalar:**
-- DomAlgorithms.cs
 
 **Problem:**
-Ana dallardaki (branch) veri yapıları (Queue<T>, Stack<T>, HashTable, DomNode vb.) DomAlgorithms.cs içerisinde tekrar tanımlanmıştı. Bu durum kodun ana dala (main) birleştirilmesi sırasında CS0101 (Aynı isim alanında çift tanımlama) derleme hatasına yol açıyordu.
 
 **Uygulanan Çözüm:**
 
-```Dosya içeriği temizlendi. Tekrarlanan tüm veri yapısı sınıfları DomAlgorithms.cs dosyasından çıkarılarak projede sadece tek bir tanım kalması sağlandı. İlgili veri yapıları referans alınarak (using) kullanılmaya başlandı.
-
+```
 
 
 
