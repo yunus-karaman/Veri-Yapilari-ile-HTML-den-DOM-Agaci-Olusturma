@@ -57,7 +57,6 @@
 
 ## phase2-traversal-search
 
-```markdown
 ### Sınıf Tanımlarının Tekrarlanması
 **Etkilenen Dosyalar:**
 - DomAlgorithms.cs
@@ -69,60 +68,8 @@ Ana dallardaki (branch) veri yapıları (Queue<T>, Stack<T>, HashTable, DomNode 
 
 ```Dosya içeriği temizlendi. Tekrarlanan tüm veri yapısı sınıfları DomAlgorithms.cs dosyasından çıkarılarak projede sadece tek bir tanım kalması sağlandı. İlgili veri yapıları referans alınarak (using) kullanılmaya başlandı.
 
-### DFS ve BFS Algoritmalarının Test Edilememesi
-**Etkilenen Dosyalar:**
-- DomAlgorithms.cs
 
-**Problem:**
-DepthFirstSearch ve BreadthFirstSearch metotları void dönüş tipine sahipti ve sonuçları doğrudan Console'a yazdırıyordu. Bu yapı, algoritmaların UI entegrasyonunu ve otomatik birim testlerinin (Unit Test) yazılmasını engelliyordu.
 
-**Uygulanan Çözüm:**
-
-```Metot imzaları değiştirilerek gezinilen düğümlerin List<DomNode> olarak döndürülmesi sağlandı. Çıktı yönetimi algoritma içinden çıkarıldı ve çağıran (caller) katmanın sorumluluğuna bırakıldı.
-
-### Düzenli İfade ile HTML Ayrıştırma Hatası
-**Etkilenen Dosyalar:**
-- DomAlgorithms.cs
-
-**Problem:**
-Ayrıştırma işlemi için kullanılan RegEx deseni, etiket özellikleri içindeki > karakterlerinde bozuluyor, ayrıca HTML yorum satırlarını (``) ve <!DOCTYPE> bildirimlerini hatalı bir şekilde düğüm olarak ağaca eklemeye çalışıyordu.
-
-**Uygulanan Çözüm:**
-
-```Tokenize metodundaki RegEx kuralı |<![^>]*>|</?[^>]+>|[^<]+ olarak güncellendi. Yorum satırları ve C-Data/Doctype bildirimleri ayrıştırma aşamasında atlanarak temiz bir DOM düğüm işleyişi sağlandı.
-
-### Kendi Kendine Kapanan Elementlerin Ağacı Bozması
-**Etkilenen Dosyalar:**
-- DomAlgorithms.cs
-
-**Problem:**
-HTML5 standartlarında kapanış etiketi bulunmayan <br>, <img>, <meta> gibi elementler, normal açılış etiketi gibi Yığın'a ekleniyordu. Kapanış etiketi gelmediği için bu durum DOM hiyerarşisinin tamamen bozulmasına sebep oluyordu.
-
-**Uygulanan Çözüm:**
-
-TokenType enum yapısına SelfClosingTag eklendi. Tüm void elementler büyük/küçük harf duyarsız bir HashSet ($O(1)$ erişim) içinde tanımlandı. Token üretilirken bu düğümlerin stack'e push edilmeden doğrudan ebeveyn düğüme bağlanması sağlandı.
-
-### Geçersiz Etiketlerde Dizi İndeksi Hatası 
-**Etkilenen Dosyalar:**
-- DomAlgorithms.cs
-
-**Problem:**
-Düğüm oluşturma aşamasında etiket içerikleri parçalanırken, içerik boş veya hatalı geldiğinde dizinin ilk elemanına (parts[0]) erişilmeye çalışılıyor ve uygulama tamamen çöküyordu.
-
-**Uygulanan Çözüm:**
-
-Dizi parçalamasından sonra parts.Length == 0 güvenlik kontrolü eklendi. Eğer içerik geçersizse çökme  yerine, hatanın kaynağını gösteren bir InvalidOperationException fırlatılması mantığı kuruldu.
-
-### Rekürsif Aramalarda Aşırı Bellek Tüketimi
-**Etkilenen Dosyalar:**
-- DomAlgorithms.cs
-
-**Problem:**
-SearchByTagName metodu, ağaçta derine indikçe kendi kendini çağırdığı  her adımda bellekte yeni bir List<DomNode> objesi yaratıyor ve listeleri AddRange ile birleştiriyordu. N düğümlü bir ağaçta bu durum performansı ciddi oranda düşürüyordu.
-
-**Uygulanan Çözüm:**
-
-Metot tasarımı değiştirilerek dışarıdan verilen tek bir sonuç listesinin kullanılması sağlandı. Tüm rekürsif çağrılar aynı listeyi paylaşarak ekstra bellek tahsisi sorununu ortadan kaldırdı ve arama maliyeti saf O(N) seviyesine çekildi.
 
 ## phase3-ui-dom-visualizer
 
