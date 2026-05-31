@@ -57,7 +57,7 @@
 
 ## phase2-traversal-search
 
-```markdown
+
 ### Sınıf Tanımlarının Tekrarlanması
 
 **Etkilenen Dosyalar:DomAlgorithms.cs**
@@ -105,7 +105,7 @@
 
 **Uygulanan Çözüm: Metot tasarımı değiştirilerek dışarıdan verilen tek bir sonuç listesinin (referans olarak) kullanılması sağlandı (void SearchByTagName(DomNode, string, List<DomNode>)). Tüm rekürsif çağrılar aynı listeyi paylaşarak ekstra bellek tahsisi sorununu ortadan kaldırdı ve arama maliyeti O(N) seviyesine çekildi.**
 
-```
+
 
 
 
