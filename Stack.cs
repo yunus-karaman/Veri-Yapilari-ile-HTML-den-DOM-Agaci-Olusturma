@@ -1,48 +1,58 @@
 using System;
-using System.Collections.Generic;
 
 namespace DomParser
 {
     public class Stack<T>
     {
-        
-        private List<T> elements = new List<T>();
+        // Kendi bağlı liste düğümümüz
+        private class Node
+        {
+            public T Value;
+            public Node Next;
 
-        // Stackin en üstüne eleman ekler açılış etiketleri için
+            public Node(T value, Node next)
+            {
+                Value = value;
+                Next = next;
+            }
+        }
+
+        private Node head;
+        private int count;
+
         public void Push(T item)
         {
-            elements.Add(item);
+            head = new Node(item, head);
+            count++;
         }
 
-        // Stackin en üstündeki elemanı çıkarır ve döndürür kapanış etiketleri için
         public T Pop()
         {
-            if (elements.Count == 0)
+            if (head == null)
                 throw new InvalidOperationException("Stack boş, çıkarılacak eleman yok!");
 
-            int lastIndex = elements.Count - 1;
-            T item = elements[lastIndex];
-            elements.RemoveAt(lastIndex);
-            return item;
+            T value = head.Value;
+            head = head.Next;
+            count--;
+            return value;
         }
 
-        // Stackin en üstündeki elemanı çıkarmadan sadece değerine bakar
         public T Peek()
         {
-            if (elements.Count == 0)
+            if (head == null)
                 throw new InvalidOperationException("Stack boş!");
 
-            return elements[elements.Count - 1];
+            return head.Value;
         }
 
         public int Count
         {
-            get { return elements.Count; }
+            get { return count; }
         }
 
         public bool IsEmpty
         {
-            get { return elements.Count == 0; }
+            get { return head == null; }
         }
     }
 }
