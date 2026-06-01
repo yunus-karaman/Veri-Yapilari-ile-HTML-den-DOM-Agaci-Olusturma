@@ -4,12 +4,12 @@ namespace DomParser
 {
     public class HashTable
     {
-        // Çakışmaları önlemek için kendi içinde bir linked list düğümü
+        // Çakışmalar için zincirleme (chaining) düğümü
         private class HashNode
         {
-            public string Key { get; set; }     // ID değeri
-            public DomNode Value { get; set; }  // İlgili DOM düğümü
-            public HashNode Next { get; set; }  // Çakışma olursa bir sonraki düğüm
+            public string Key { get; set; }
+            public DomNode Value { get; set; }
+            public HashNode Next { get; set; }
 
             public HashNode(string key, DomNode value)
             {
@@ -21,25 +21,35 @@ namespace DomParser
 
         private HashNode[] buckets;
         private int capacity;
+        private int count;
+        private const double LoadFactorLimit = 0.75;
 
         public HashTable(int capacity = 100)
         {
             this.capacity = capacity;
             buckets = new HashNode[capacity];
+            count = 0;
         }
 
-        // Gelen ID ye göre bir indeks numarası üreten hash fonksiyonu
-        private int GetBucketIndex(string key)
+        public int Count
         {
-            int hashCode = key.GetHashCode();
-            int index = hashCode % capacity;
-            return Math.Abs(index);
+            get { return count; }
         }
 
-        // Tabloya yeni bir ID ve DomNode çifti ekleme
+        // Kendi yazdığımız hash fonksiyonu (polynomial rolling hash)
+        private int GetBucketIndex(string key, int bucketCount)
+        {
+            int hash = 0;
+            foreach (char c in key)
+            {
+                hash = hash * 31 + c;
+            }
+            return (hash & 0x7FFFFFFF) % bucketCount;   // negatif/taşma olmasın diye maske
+        }
+
         public void Put(string key, DomNode value)
         {
-            int index = GetBucketIndex(key);
+            int index = GetBucketIndex(key, capacity);
             HashNode head = buckets[index];
 
             HashNode current = head;
@@ -56,15 +66,20 @@ namespace DomParser
             HashNode newNode = new HashNode(key, value);
             newNode.Next = head;
             buckets[index] = newNode;
+            count++;
+
+            // tablo dolunca büyüt
+            if ((double)count / capacity > LoadFactorLimit)
+            {
+                Rehash();
+            }
         }
 
-        // Dokümanda istenen getElementById fonksiyonu
         public DomNode GetElementById(string key)
         {
-            int index = GetBucketIndex(key);
-            HashNode head = buckets[index];
+            int index = GetBucketIndex(key, capacity);
+            HashNode current = buckets[index];
 
-            HashNode current = head;
             while (current != null)
             {
                 if (current.Key == key)
@@ -75,6 +90,56 @@ namespace DomParser
             }
 
             return null;
+        }
+
+        public bool Remove(string key)
+        {
+            int index = GetBucketIndex(key, capacity);
+            HashNode current = buckets[index];
+            HashNode previous = null;
+
+            while (current != null)
+            {
+                if (current.Key == key)
+                {
+                    if (previous == null)
+                        buckets[index] = current.Next;
+                    else
+                        previous.Next = current.Next;
+
+                    count--;
+                    return true;
+                }
+                previous = current;
+                current = current.Next;
+            }
+
+            return false;
+        }
+
+        // Kapasiteyi 2 katına çıkarıp elemanları yeniden dağıtır
+        private void Rehash()
+        {
+            int newCapacity = capacity * 2;
+            HashNode[] newBuckets = new HashNode[newCapacity];
+
+            for (int i = 0; i < buckets.Length; i++)
+            {
+                HashNode current = buckets[i];
+                while (current != null)
+                {
+                    HashNode next = current.Next;
+
+                    int index = GetBucketIndex(current.Key, newCapacity);
+                    current.Next = newBuckets[index];
+                    newBuckets[index] = current;
+
+                    current = next;
+                }
+            }
+
+            buckets = newBuckets;
+            capacity = newCapacity;
         }
     }
 }
