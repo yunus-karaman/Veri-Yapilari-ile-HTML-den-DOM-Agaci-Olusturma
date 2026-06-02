@@ -42,8 +42,11 @@ Projede şu yetenekler bulunur:
 ### Arayüz
 
 1. Repo klasörünü aç.
-2. `index.html` dosyasını tarayıcıda aç.
-3. Örnek HTML yükleyebilir veya kendi HTML metnini girip `DOM Oluştur` butonuna basabilirsin.
+2. `python local_server.py` komutunu çalıştır.
+3. Tarayıcıda `http://127.0.0.1:4174/index.html` adresini aç.
+4. Örnek HTML yükleyebilir veya kendi HTML metnini girip `DOM Oluştur` butonuna basabilirsin.
+
+Not: Arayüz `.mjs` modülleri kullandığı için doğrudan dosyayı açmak veya bazı basit statik sunucular modülleri yanlış MIME tipiyle servis edebilir. `local_server.py`, `.mjs` dosyalarını doğru şekilde `text/javascript` olarak sunar.
 
 ### C# kütüphanesi
 

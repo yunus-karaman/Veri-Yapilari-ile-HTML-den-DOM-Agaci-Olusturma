@@ -256,3 +256,75 @@ Boş queue işlemlerinde `InvalidOperationException` kullanılacak şekilde düz
 
 **Uygulanan Çözüm:**
 `AddChild` içinde `ArgumentNullException` kontrolü eklendi.
+
+## main - Son Merge ve Test Bulguları
+
+### PR #8 ve PR #10 Entegrasyonunun Yerelde Doğrulanması
+
+**Etkilenen Dosyalar:**
+- `DomNode.cs`
+- `Queue.cs`
+- `QueueNode.cs`
+- `TreeAnalyzer.cs`
+- `guncel_hata_ve_bulgular.md`
+
+**Problem:**
+PR #8, `guncel_hata_ve_bulgular.md` dosyasında çakışma oluşturuyordu. PR #10 ise `Parser.cs` üzerinde güncel `main` dalındaki çalışan parser ile çakışıyordu. Doğrudan merge edilirse çalışan parser davranışının geriye gitme riski vardı.
+
+**Uygulanan Çözüm:**
+PR #8'deki veri yapısı değişiklikleri korundu ve rapor çakışması mevcut dosyaya ek bölüm olarak çözüldü. PR #10'da `Parser.cs` için güncel `main` sürümü korundu; `TreeAnalyzer.cs` iyileştirmeleri geriye uyumlu şekilde alındı. `CalculateDepth` metodu korunarak `GetHeight`, `GetDepth` ve `TryGetSiblings` eklendi.
+
+### PR #9'un Bu Haliyle Merge Edilememesi
+
+**Etkilenen Dosyalar:**
+- `DomAlgorithms.cs`
+- `Parser.cs`
+
+**Problem:**
+PR #9'daki `DomAlgorithms.cs`, `TokenType`, `Token` ve `HtmlParser` gibi parser sınıflarını tekrar tanımlıyordu. Bu değişiklik seçildiğinde proje `CS0101` ve `CS0111` hatalarıyla derlenmiyordu.
+
+**Uygulanan Çözüm:**
+PR #9 ana dala alınmadı. Bu PR'ın merge edilebilmesi için `DomAlgorithms.cs` içindeki tekrar parser/veri yapısı tanımları kaldırılmalı ve dosya yalnızca DFS, BFS ve arama algoritmalarını içerecek şekilde güncel `main` dalına göre yeniden düzenlenmelidir.
+
+### Arayüz Modüllerinin Yanlış MIME Tipiyle Servis Edilmesi
+
+**Etkilenen Dosyalar:**
+- `README.md`
+- `local_server.py`
+- `index.html`
+- `script.mjs`
+- `dom-core.mjs`
+
+**Problem:**
+Arayüz `.mjs` modülleri kullanıyor. Bazı basit statik sunucular `.mjs` dosyalarını `text/plain` olarak servis ettiği için tarayıcı modülleri çalıştırmıyor; bu durumda sayfa açılıyor ancak örnek HTML yüklenmiyor, DOM ağacı oluşmuyor ve butonlar işlevsiz gibi görünüyor.
+
+**Uygulanan Çözüm:**
+`.mjs` dosyalarını `text/javascript` MIME tipiyle servis eden `local_server.py` eklendi. README'deki arayüz çalıştırma adımları `python local_server.py` ve `http://127.0.0.1:4174/index.html` akışına göre güncellendi.
+
+### Son Doğrulama Testleri
+
+**Etkilenen Dosyalar:**
+- `DomParser.csproj`
+- `Parser.cs`
+- `DomAlgorithms.cs`
+- `TreeAnalyzer.cs`
+- `dom-core.mjs`
+- `script.mjs`
+- `phase3-ui.test.mjs`
+
+**Problem:**
+Son merge sonrasında projenin Proje Konu 2 gereksinimlerine göre çalışıp çalışmadığı net olarak doğrulanmalıydı.
+
+**Uygulanan Çözüm:**
+`dotnet build`, C# parser/veri yapısı doğrulama senaryoları, `node phase3-ui.test.mjs`, 250 elemanlı büyük DOM JavaScript testi ve tarayıcı arayüz akışı çalıştırıldı. Geçerli HTML parse edildi, `#header` sorgusu hash index ile O(1) bulundu, `.container` sorgusu BFS ile iki eşleşme döndürdü, hatalı HTML için kullanıcıya hata mesajı gösterildi.
+
+### Teslim Paketi İçin Kalan Dokümantasyon Eksikleri
+
+**Etkilenen Dosyalar:**
+- Proje teslim paketi
+
+**Problem:**
+Kod ve arayüz Proje Konu 2'nin ana çalışma amacını karşılıyor; ancak PDF'teki genel teslim standartlarında Docker konfigürasyonu, kapsamlı proje raporu, UML/Big-O analizleri ve demo videosu gibi ek teslim öğeleri de isteniyor.
+
+**Uygulanan Çözüm:**
+Bu maddeler kod çalışmasını engelleyen hata değildir. Teslimden önce ayrıca hazırlanması gereken paket işleri olarak not edildi.
