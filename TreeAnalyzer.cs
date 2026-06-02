@@ -6,36 +6,50 @@ namespace DomParser
     // Kapsam (Scope) hatasını çözmek için metotlar bir sınıf içine alındı
     public class TreeAnalyzer
     {
-        // Her yerden çağrılabilmesi için metotlar static yapıldı
+        // Geriye uyumluluk için mevcut derinlik API'si korunur.
         public static int CalculateDepth(DomNode node)
         {
             if (node == null) return 0;
-            if (node.Children.Count == 0) return 1; 
+            return GetHeight(node) + 1;
+        }
 
-            int maxChildDepth = 0;
+        public static int GetHeight(DomNode node)
+        {
+            if (node == null) return -1;
+            if (node.Children == null || node.Children.Count == 0) return 0;
+
+            int maxChildHeight = -1;
             foreach (var child in node.Children)
             {
-                int childDepth = CalculateDepth(child); 
-                if (childDepth > maxChildDepth)
+                int childHeight = GetHeight(child);
+                if (childHeight > maxChildHeight)
                 {
-                    maxChildDepth = childDepth;
+                    maxChildHeight = childHeight;
                 }
             }
+            return maxChildHeight + 1;
+        }
 
-            return maxChildDepth + 1; 
+        public static int GetDepth(DomNode node)
+        {
+            int depth = 0;
+            DomNode cursor = node;
+            while (cursor != null && cursor.Parent != null)
+            {
+                depth++;
+                cursor = cursor.Parent;
+            }
+            return depth;
         }
 
         public static List<DomNode> GetSiblings(DomNode node)
         {
             List<DomNode> siblings = new List<DomNode>();
-
-            // Eğer düğüm boşsa veya kök düğümse (ebeveyni yoksa) boş liste döner
-            if (node == null || node.Parent == null) 
-                return siblings;
+            if (node == null || node.Parent == null) return siblings;
 
             foreach (var child in node.Parent.Children)
             {
-                if (child != node) 
+                if (!object.ReferenceEquals(child, node))
                 {
                     siblings.Add(child);
                 }
@@ -43,15 +57,33 @@ namespace DomParser
             return siblings;
         }
 
+        public static bool TryGetSiblings(DomNode node, out List<DomNode> siblings)
+        {
+            siblings = new List<DomNode>();
+            if (node == null || node.Parent == null) return false;
+
+            foreach (var child in node.Parent.Children)
+            {
+                if (!object.ReferenceEquals(child, node))
+                {
+                    siblings.Add(child);
+                }
+            }
+            return true;
+        }
+
         public static void FindElementsByTagName(DomNode node, string targetTag, List<DomNode> results)
         {
             if (node == null) return;
+            if (results == null) return;
+            if (string.IsNullOrEmpty(targetTag)) return;
 
-            // Etiket adını büyük/küçük harf duyarsız olarak karşılaştırıyoruz
-            if (node.TagName.Equals(targetTag, StringComparison.OrdinalIgnoreCase))
+            if (node.TagName != null && node.TagName.Equals(targetTag, StringComparison.OrdinalIgnoreCase))
             {
                 results.Add(node);
             }
+
+            if (node.Children == null) return;
 
             foreach (var child in node.Children)
             {

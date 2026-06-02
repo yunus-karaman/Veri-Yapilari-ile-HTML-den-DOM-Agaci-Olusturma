@@ -24,6 +24,9 @@ namespace DomParser
 
         public void AddChild(DomNode child)
         {
+            if (child == null)
+                throw new ArgumentNullException(nameof(child), "Child cannot be null");
+
             child.Parent = this;
             Children.Add(child);
         }
