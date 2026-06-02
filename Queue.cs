@@ -1,42 +1,69 @@
-using System.Collections.Generic;
+using System;
 
 namespace DomParser
 {
     public class Queue<T>
     {
-        private LinkedList<T> list = new LinkedList<T>();
+        private QueueNode<T> _head;
+        private QueueNode<T> _tail;
+        private int _count;
+
+        public Queue()
+        {
+            _head = null;
+            _tail = null;
+            _count = 0;
+        }
 
         public void Enqueue(T item)
         {
-            list.AddLast(item);
+            QueueNode<T> newNode = new QueueNode<T>(item);
+
+            if (_tail == null)
+            {
+                _head = newNode;
+                _tail = newNode;
+            }
+            else
+            {
+                _tail.Next = newNode;
+                _tail = newNode;
+            }
+
+            _count++;
         }
 
         public T Dequeue()
         {
-            if (list.Count == 0)
-                throw new System.Exception("Queue boş");
+            if (_head == null)
+                throw new InvalidOperationException("Queue boş");
 
-            T value = list.First.Value;
-            list.RemoveFirst();
+            T value = _head.Value;
+            _head = _head.Next;
+
+            if (_head == null)
+                _tail = null;
+
+            _count--;
             return value;
         }
 
         public T Peek()
         {
-            if (list.Count == 0)
-                throw new System.Exception("Queue boş");
+            if (_head == null)
+                throw new InvalidOperationException("Queue boş");
 
-            return list.First.Value;
+            return _head.Value;
         }
 
         public int Count
         {
-            get { return list.Count; }
+            get { return _count; }
         }
 
         public bool IsEmpty
         {
-            get { return list.Count == 0; }
+            get { return _count == 0; }
         }
     }
 }

@@ -18,16 +18,19 @@ namespace DomParser
             Id = null;
             TextContent = string.Empty;
             Classes = new List<string>();
+            TextContent = string.Empty;
             Parent = null;
             Children = new List<DomNode>();
         }
 
-        public void AddChild(DomNode child)
-        {
-            child.Parent = this;
-            Children.Add(child);
-        }
+       public void AddChild(DomNode child)
+{
+    if (child == null)
+        throw new ArgumentNullException(nameof(child), "Child cannot be null");
 
+    child.Parent = this;
+    Children.Add(child);
+}
         public void SetId(string id)
         {
             Id = id;

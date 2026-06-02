@@ -209,3 +209,50 @@ Arama alanı semantik olarak `role=search` içinde değildi ve arama sonucundaki
 
 **Uygulanan Çözüm:**
 Arama kontrolleri `role="search"` taşıyan form yapısına çevrildi. Arama butonu `submit` davranışına alındı ve JS tarafında form submit event'i yakalanarak arama çalıştırıldı. Durum çubuğuna `aria-live="polite"` ve `aria-atomic="true"` eklendi.
+
+## phase1-data-structures - PR #8
+
+### DomNode'da TextContent Alanının Eksik Olması
+
+**Etkilenen Dosyalar:**
+- `DomNode.cs`
+
+**Problem:**
+`<p>Merhaba</p>` gibi HTML yapılarında metin saklanamıyordu.
+
+**Uygulanan Çözüm:**
+`DomNode.cs` dosyasına `TextContent` alanı eklendi ve constructor içinde `string.Empty` ile başlatıldı.
+
+### Queue .NET LinkedList Kullanıyordu
+
+**Etkilenen Dosyalar:**
+- `Queue.cs`
+- `QueueNode.cs`
+
+**Problem:**
+Queue implementasyonu hazır `LinkedList<T>` kullanıyordu.
+
+**Uygulanan Çözüm:**
+Queue, kendi linked list düğümü olan `QueueNode<T>` ile sıfırdan yazıldı.
+
+### Queue'da Yanlış Exception Türü
+
+**Etkilenen Dosyalar:**
+- `Queue.cs`
+
+**Problem:**
+Boş queue işlemlerinde genel `System.Exception` fırlatılıyordu.
+
+**Uygulanan Çözüm:**
+Boş queue işlemlerinde `InvalidOperationException` kullanılacak şekilde düzeltildi.
+
+### AddChild'de Null Kontrolü Yoktu
+
+**Etkilenen Dosyalar:**
+- `DomNode.cs`
+
+**Problem:**
+`AddChild(null)` çağrısı kontrolsüzdü.
+
+**Uygulanan Çözüm:**
+`AddChild` içinde `ArgumentNullException` kontrolü eklendi.
