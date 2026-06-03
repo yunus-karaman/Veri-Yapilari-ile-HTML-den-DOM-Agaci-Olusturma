@@ -1,9 +1,10 @@
-import {
+﻿import {
   analyzeSubtree,
   buildDomTree,
   calculateDepth,
   flattenNodesWithDepth,
   formatNodeLabel,
+  generateSyntheticHtml,
   getSiblings,
   resolveSearchPlan,
   searchTree,
@@ -13,14 +14,14 @@ const SAMPLE_HTML = `<html>
   <body>
     <header id="header" class="hero shell">
       <nav class="menu">
-        <a id="brand" class="menu-item">Veri Yapilari</a>
+        <a id="brand" class="menu-item">Veri Yapıları</a>
         <a class="menu-item">Projeler</a>
       </nav>
     </header>
     <main class="container">
       <section class="card">
-        <h1>DOM Agaci</h1>
-        <p class="lead">Bu panel hiyerarsiyi gosterir.</p>
+        <h1>DOM Ağacı</h1>
+        <p class="lead">Bu panel hiyerarşiyi gösterir.</p>
       </section>
       <section class="card">
         <ul class="items">
@@ -38,6 +39,8 @@ const elements = {
   lineNumbers: document.querySelector("#line-numbers"),
   parseButton: document.querySelector("#parse-dom"),
   sampleButton: document.querySelector("#load-sample"),
+  generateButton: document.querySelector("#generate-html"),
+  syntheticCount: document.querySelector("#synthetic-count"),
   resetButton: document.querySelector("#reset-editor"),
   searchForm: document.querySelector(".search-controls"),
   searchInput: document.querySelector("#search-input"),
@@ -107,6 +110,18 @@ function nodeElementClass(node, matches, selectedNodeId) {
   return classes.join(" ");
 }
 
+function containsNode(root, nodeId) {
+  if (!root || !nodeId) {
+    return false;
+  }
+
+  if (root.uid === nodeId) {
+    return true;
+  }
+
+  return root.children.some((child) => containsNode(child, nodeId));
+}
+
 function createLabelContent(node) {
   const fragment = document.createDocumentFragment();
 
@@ -141,10 +156,11 @@ function renderTreeNode(node, matches, selectedNodeId, depth = 0) {
     const details = document.createElement("details");
     details.className = nodeElementClass(node, matches, selectedNodeId);
     details.dataset.nodeId = node.uid;
-    details.open = depth < 2 || matches.some((match) => match.uid === node.uid);
+    details.open = depth < 2 ||
+      matches.some((match) => match.uid === node.uid) ||
+      containsNode(node, selectedNodeId);
 
     const summary = document.createElement("summary");
-    summary.dataset.nodeId = node.uid;
     summary.append(createLabelContent(node));
     details.append(summary);
 
@@ -168,7 +184,7 @@ function renderTree() {
   if (!state.root || state.root.children.length === 0) {
     const emptyState = document.createElement("div");
     emptyState.className = "empty-state";
-    emptyState.innerHTML = "<div><strong>Agac henuz olusturulmadi.</strong><p>Soldaki HTML metnini ayrisirarak burada gosterebilirsin.</p></div>";
+    emptyState.innerHTML = "<div><strong>Ağaç henüz oluşturulmadı.</strong><p>Soldaki HTML metnini ayrıştırarak burada görüntüleyebilirsin.</p></div>";
     elements.treeRoot.append(emptyState);
     updateNodeDetails(null);
     return;
@@ -177,6 +193,10 @@ function renderTree() {
   for (const child of state.root.children) {
     elements.treeRoot.append(renderTreeNode(child, state.matches, state.selectedNodeId, 1));
   }
+}
+
+function firstVisibleNode(root) {
+  return root?.children?.[0] || null;
 }
 
 function updateNodeDetails(node) {
@@ -220,7 +240,7 @@ function expandAncestors(node) {
 
 function runSearch() {
   if (!state.root) {
-    setStatus("Once DOM agacini olustur.", "error");
+    setStatus("Önce DOM ağacını oluştur.", "error");
     return;
   }
 
@@ -228,6 +248,8 @@ function runSearch() {
   const plan = resolveSearchPlan(query, elements.strategy.value);
   if (!query) {
     state.matches = [];
+    state.selectedNodeId = null;
+    updateNodeDetails(null);
     elements.searchSummary.textContent = "Arama temizlendi";
     renderTree();
     return;
@@ -238,14 +260,18 @@ function runSearch() {
   const strategyText = plan ? `Strateji: ${plan.label} ${plan.complexity}` : "Strateji yok";
 
   if (matches.length === 0) {
-    elements.searchSummary.textContent = `Eslesme bulunamadi: ${query}. ${strategyText}`;
-    setStatus("Arama tamamlandi", "neutral");
+    state.selectedNodeId = null;
+    updateNodeDetails(null);
+    elements.searchSummary.textContent = `Eşleşme bulunamadı: ${query}. ${strategyText}`;
+    setStatus("Arama tamamlandı", "neutral");
     renderTree();
     return;
   }
 
-  elements.searchSummary.textContent = `${matches.length} eslesme bulundu. ${strategyText}`;
-  setStatus("Arama tamamlandi", "neutral");
+  elements.searchSummary.textContent = `${matches.length} eşleşme bulundu. ${strategyText}`;
+  setStatus("Arama tamamlandı", "neutral");
+  state.selectedNodeId = matches[0].uid;
+  updateNodeDetails(matches[0]);
   renderTree();
   expandAncestors(matches[0]);
   const firstElement = elements.treeRoot.querySelector(`[data-node-id="${matches[0].uid}"]`);
@@ -259,11 +285,13 @@ function parseAndRender() {
     state.idIndex = result.idIndex;
     state.uidIndex = result.uidIndex;
     state.matches = [];
-    state.selectedNodeId = null;
+    const selectedNode = firstVisibleNode(result.root);
+    state.selectedNodeId = selectedNode?.uid || null;
     updateMetrics(result.root);
+    updateNodeDetails(selectedNode);
     renderTree();
-    elements.searchSummary.textContent = `${result.tokens.length} token ayrildi`;
-    setStatus("DOM agaci olusturuldu", "neutral");
+    elements.searchSummary.textContent = `${result.tokens.length} token ayrıldı`;
+    setStatus("DOM ağacı oluşturuldu", "neutral");
   } catch (error) {
     state.root = null;
     state.idIndex = null;
@@ -272,7 +300,7 @@ function parseAndRender() {
     state.selectedNodeId = null;
     updateMetrics(null);
     renderTree();
-    elements.searchSummary.textContent = "Sonuc yok";
+    elements.searchSummary.textContent = "Sonuç yok";
     setStatus(error.message, "error");
   }
 }
@@ -289,6 +317,15 @@ elements.sampleButton.addEventListener("click", () => {
   parseAndRender();
 });
 
+elements.generateButton.addEventListener("click", () => {
+  const count = Math.max(1, Math.min(Number.parseInt(elements.syntheticCount.value, 10) || 1, 1000));
+  elements.syntheticCount.value = String(count);
+  elements.htmlInput.value = generateSyntheticHtml(count);
+  updateLineNumbers();
+  parseAndRender();
+  elements.searchInput.value = count > 1 ? ".synthetic-node" : "#node-1";
+});
+
 elements.resetButton.addEventListener("click", () => {
   elements.htmlInput.value = "";
   elements.searchInput.value = "";
@@ -301,7 +338,7 @@ elements.resetButton.addEventListener("click", () => {
   updateMetrics(null);
   renderTree();
   setStatus("Editor temizlendi", "neutral");
-  elements.searchSummary.textContent = "Sonuc yok";
+  elements.searchSummary.textContent = "Sonuç yok";
 });
 
 elements.searchForm.addEventListener("submit", (event) => {
@@ -324,7 +361,7 @@ function initialize() {
     updateLineNumbers();
     parseAndRender();
   } catch (error) {
-    setStatus(`Baslangic ornegi yuklenemedi: ${error.message}`, "error");
+    setStatus(`Başlangıç örneği yüklenemedi: ${error.message}`, "error");
   }
 }
 

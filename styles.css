@@ -160,6 +160,25 @@ textarea {
   justify-content: flex-end;
 }
 
+.editor-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.count-control {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.count-control input {
+  width: 130px;
+}
+
 input,
 select {
   border: 1px solid var(--line);

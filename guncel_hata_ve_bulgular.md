@@ -130,7 +130,7 @@
 - `phase3-ui.test.mjs`
 
 **Problem:**
-`<DIV>...</div>` gibi HTML açısından geçerli girdilerde kapanış etiketi karşılaştırması bire bir string eşitliğiyle yapıldığı için hatalı şekilde `Etiket uyusmazligi` hatası üretilebiliyordu.
+`<DIV>...</div>` gibi HTML açısından geçerli girdilerde kapanış etiketi karşılaştırması bire bir string eşitliğiyle yapıldığı için hatalı şekilde `Etiket uyuşmazlığı` hatası üretilebiliyordu.
 
 **Uygulanan Çözüm:**
 Node oluşturulurken tag adları lower-case olarak normalize edildi. Kapanış etiketi kontrolü de lower-case karşılaştırmaya çekildi. Testte mixed-case tag ve void element kombinasyonu doğrulandı.
@@ -328,3 +328,76 @@ Kod ve arayüz Proje Konu 2'nin ana çalışma amacını karşılıyor; ancak PD
 
 **Uygulanan Çözüm:**
 Bu maddeler kod çalışmasını engelleyen hata değildir. Teslimden önce ayrıca hazırlanması gereken paket işleri olarak not edildi.
+
+## main - Docker, Arayüz ve Dokümantasyon Güncellemeleri
+
+### Docker ile Tek Komutla Çalıştırma Eksikliği
+
+**Etkilenen Dosyalar:**
+- `Dockerfile`
+- `docker-compose.yml`
+- `.dockerignore`
+- `README.md`
+- `local_server.py`
+
+**Problem:**
+Proje yerelde çalışsa da teslim kriterlerinde istenen tek komutla ayağa kaldırma akışı eksikti. Ayrıca `.mjs` modüllerinin doğru MIME tipiyle sunulması gerektiği için sıradan dosya açma yöntemi arayüzü güvenilir şekilde çalıştırmıyordu.
+
+**Uygulanan Çözüm:**
+Çok aşamalı Dockerfile eklendi. Build aşamasında .NET 9 SDK ile proje derleniyor, runtime aşamasında Python tabanlı hafif statik sunucu arayüzü servis ediyor. `docker-compose.yml` ile uygulama `4174` portundan tek komutla çalıştırılabilir hale getirildi. `local_server.py`, Docker içinde `0.0.0.0`, yerelde ise varsayılan olarak `127.0.0.1` üzerinden çalışacak şekilde yapılandırıldı.
+
+### Farklı Düğüm Sayılarıyla Test Etme Akışının Belirsiz Olması
+
+**Etkilenen Dosyalar:**
+- `index.html`
+- `script.mjs`
+- `dom-core.mjs`
+- `styles.css`
+- `phase3-ui.test.mjs`
+
+**Problem:**
+Kullanıcı farklı düğüm sayılarıyla deneme yapmak istediğinde elle HTML üretmesi gerekiyordu. Ayrıca toplam düğüm sayısının element düğümleri ile metin düğümlerinin toplamı olduğu arayüzde anlaşılması zor olabiliyordu.
+
+**Uygulanan Çözüm:**
+Arayüze `Düğüm sayısı` alanı ve `HTML Üret` butonu eklendi. `generateSyntheticHtml` fonksiyonu ile 1-1000 arası sentetik HTML üretimi sağlandı. Test dosyasına 1, 10, 100 ve 500 düğümlü senaryolar eklendi. README'ye toplam düğüm sayısının element ve metin düğümlerini birlikte kapsadığı notu eklendi.
+
+### Düğüm Ayrıntısı Panelinin Boş Kalması
+
+**Etkilenen Dosyalar:**
+- `script.mjs`
+
+**Problem:**
+DOM ağacı oluşturulduktan sonra kullanıcı bir düğüm seçmediği sürece `Düğüm Ayrıntısı` paneli boş kalıyordu. Arama sonuçlarında da eşleşen düğüm vurgulansa bile ayrıntı paneli her zaman otomatik güncellenmiyordu.
+
+**Uygulanan Çözüm:**
+DOM oluşturulduğunda ilk görünür düğüm otomatik seçilecek şekilde `firstVisibleNode` akışı eklendi. Arama sonucu varsa ilk eşleşme otomatik seçiliyor ve `updateNodeDetails` ile ayrıntı paneli dolduruluyor. Tıklama hedefindeki kararsızlığı azaltmak için aynı `data-node-id` bilgisinin hem `details` hem `summary` üzerinde tekrar edilmesi kaldırıldı.
+
+### Arayüzde Türkçe Karakterlerin Eksik Kullanılması
+
+**Etkilenen Dosyalar:**
+- `index.html`
+- `script.mjs`
+- `dom-core.mjs`
+- `local_server.py`
+- `README.md`
+
+**Problem:**
+Arayüzde ve durum mesajlarında `Agaci`, `Gorsellestirici`, `Dugum`, `Hazir`, `Sonuc`, `uyusmazligi` gibi Türkçe karakterleri eksik metinler bulunuyordu. Bu durum kullanıcı deneyimini zayıflatıyor ve profesyonel görünümü bozuyordu.
+
+**Uygulanan Çözüm:**
+Kullanıcıya görünen başlık, buton, panel, metrik, durum, hata ve uyarı metinleri Türkçe karakterlerle güncellendi. README profesyonel bir proje dokümanı olarak yeniden düzenlendi.
+
+### Son Test ve Doğrulama Durumu
+
+**Etkilenen Dosyalar:**
+- `DomParser.csproj`
+- `phase3-ui.test.mjs`
+- `Dockerfile`
+- `docker-compose.yml`
+- `local_server.py`
+
+**Problem:**
+Docker, arayüz metinleri, sentetik düğüm üretimi ve düğüm ayrıntısı düzeltmeleri sonrasında tüm projenin yeniden doğrulanması gerekiyordu.
+
+**Uygulanan Çözüm:**
+`dotnet build`, `node phase3-ui.test.mjs`, `python -m py_compile local_server.py` ve `docker compose up --build -d` çalıştırıldı. Docker build sırasında .NET Release derlemesi başarılı oldu. Container üzerinden `index.html`, `script.mjs` ve `dom-core.mjs` dosyalarının `200` döndüğü ve `.mjs` dosyalarının `text/javascript` MIME tipiyle servis edildiği doğrulandı.

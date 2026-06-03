@@ -1,4 +1,4 @@
-const VOID_ELEMENTS = new Set([
+﻿const VOID_ELEMENTS = new Set([
   "area",
   "base",
   "br",
@@ -50,7 +50,7 @@ export class Stack {
 
   pop() {
     if (!this.topNode) {
-      throw new Error("Stack bos.");
+      throw new Error("Stack boş.");
     }
 
     const { value } = this.topNode;
@@ -89,7 +89,7 @@ export class Queue {
 
   dequeue() {
     if (!this.head) {
-      throw new Error("Queue bos.");
+      throw new Error("Queue boş.");
     }
 
     const { value } = this.head;
@@ -243,7 +243,7 @@ function parseTag(token) {
     .trim();
 
   if (!normalized) {
-    throw new Error("Gecersiz HTML etiketi.");
+    throw new Error("Geçersiz HTML etiketi.");
   }
 
   const parts = normalized.split(/\s+/);
@@ -294,17 +294,17 @@ export function buildDomTree(html) {
 
     const closingTag = token.value.replace(/^<\//, "").replace(/>$/, "").trim().toLowerCase();
     if (stack.count === 1) {
-      throw new Error(`Etiket uyusmazligi: </${closingTag}> beklenmeyen konumda.`);
+      throw new Error(`Etiket uyuşmazlığı: </${closingTag}> beklenmeyen konumda.`);
     }
     const current = stack.pop();
 
     if (!current || current.tagName.toLowerCase() !== closingTag.toLowerCase()) {
-      throw new Error(`Etiket uyusmazligi: </${closingTag}> beklenmeyen konumda.`);
+      throw new Error(`Etiket uyuşmazlığı: </${closingTag}> beklenmeyen konumda.`);
     }
   }
 
   if (stack.count !== 1) {
-    throw new Error("HTML yapisi tamamlanmamis. Acik kalan etiketler var.");
+    throw new Error("HTML yapısı tamamlanmamış. Açık kalan etiketler var.");
   }
 
   return {
@@ -486,7 +486,7 @@ export function searchTree(root, idIndex, query, strategy = "auto") {
 
   if (parsed.mode === "id") {
     console.warn(
-      `ID aramasi ${plan.label} ile ${plan.complexity} tarama yapiyor. O(1) hash indeks icin Otomatik stratejiyi secin.`,
+      `ID araması ${plan.label} ile ${plan.complexity} tarama yapıyor. O(1) hash indeks için Otomatik stratejiyi seçin.`,
     );
   }
 
@@ -518,4 +518,30 @@ export function formatNodeLabel(node) {
   }
 
   return node.tagName;
+}
+
+export function generateSyntheticHtml(nodeCount) {
+  const count = Math.max(1, Math.min(Number.parseInt(nodeCount, 10) || 1, 1000));
+  const nodes = Array.from({ length: count }, (_, index) => ({
+    index,
+    id: `node-${index + 1}`,
+    children: [],
+  }));
+
+  for (let index = 1; index < nodes.length; index += 1) {
+    const parentIndex = Math.floor((index - 1) / 3);
+    nodes[parentIndex].children.push(nodes[index]);
+  }
+
+  function renderNode(node) {
+    const tagName = node.index === 0 ? "main" : "section";
+    const className = node.index === 0 ? "synthetic-root" : "synthetic-node";
+    const children = node.children
+      .map((child) => renderNode(child))
+      .join("");
+
+    return `<${tagName} id="${node.id}" class="${className}">${children}</${tagName}>`;
+  }
+
+  return renderNode(nodes[0]);
 }

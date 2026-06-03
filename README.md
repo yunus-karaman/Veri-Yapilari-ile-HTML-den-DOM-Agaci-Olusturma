@@ -1,75 +1,146 @@
 # Veri Yapıları ile HTML'den DOM Ağacı Oluşturma
 
-Bu proje, basitleştirilmiş HTML girdisini ayrıştırarak DOM ağacı oluşturmak, bu ağaç üzerinde veri yapıları ve algoritmalarla işlem yapmak ve sonucu bir arayüzde görselleştirmek için hazırlandı.
+Bu proje, ham HTML metnini basitleştirilmiş bir parser ile ayrıştırarak bellekte DOM benzeri hiyerarşik bir ağaç yapısı oluşturur. Amaç tam kapsamlı bir tarayıcı motoru geliştirmek değil; DOM oluşturma sürecini veri yapıları, arama algoritmaları ve görselleştirme üzerinden anlaşılır şekilde modellemektir.
 
-Repo iki ana parçadan oluşur:
+## Temel Özellikler
 
-- C# tarafında DOM düğümü, parser, hash table, stack, queue ve analiz algoritmaları
-- JavaScript tarafında HTML girdisini ayrıştıran ve DOM ağacını görselleştiren arayüz
-
-## Proje Kapsamı
-
-Projede şu yetenekler bulunur:
-
-- HTML etiketlerinden hiyerarşik DOM ağacı oluşturma
-- `id`, `class` ve `tag` bazlı arama
-- DFS ve BFS ile düğüm dolaşımı
+- HTML etiketlerinden N-ary tree tabanlı DOM ağacı oluşturma
+- Ebeveyn-çocuk ilişkilerini ve metin düğümlerini saklama
+- `id`, `class` ve tag adına göre arama
+- `id` aramalarında hash index ile ortalama `O(1)` erişim
+- DFS ve BFS ile ağaç dolaşımı
 - Ağaç derinliği, kardeş düğümler ve alt ağaç boyutu analizi
-- Tarayıcı üzerinde DOM ağacı görselleştirme
+- Açılır-kapanır DOM ağacı görselleştirmesi
+- Farklı düğüm sayıları için sentetik HTML üretimi
+- Docker Compose ile tek komutla çalıştırma
 
-## Dosya Yapısı
+## Mimari
 
-### C# çekirdeği
+### C# Çekirdeği
 
-- `DomNode.cs`: DOM düğüm modeli
-- `Parser.cs`: HTML parser
-- `HashTable.cs`: `id` indeksleme yapısı
-- `Stack.cs`: parser için stack
-- `Queue.cs`: BFS için queue
-- `DomAlgorithms.cs`: DFS, BFS ve arama algoritmaları
-- `TreeAnalyzer.cs`: derinlik, kardeş ve alt ağaç analizleri
-- `DomParser.csproj`: .NET proje dosyası
-
-### Arayüz
-
-- `index.html`: uygulama iskeleti
-- `styles.css`: arayüz stilleri
-- `dom-core.mjs`: tarayıcı tarafındaki parser ve ağaç mantığı
-- `script.mjs`: arayüz etkileşimi ve render akışı
-
-## Çalıştırma
+| Dosya | Sorumluluk |
+| --- | --- |
+| `DomNode.cs` | DOM düğüm modeli, metin içeriği, ebeveyn ve çocuk ilişkileri |
+| `Parser.cs` | HTML tokenizer ve stack tabanlı DOM ağacı üretimi |
+| `Stack.cs` | Parser için sıfırdan yazılmış yığıt |
+| `Queue.cs`, `QueueNode.cs` | BFS için sıfırdan yazılmış kuyruk |
+| `HashTable.cs` | `id` tabanlı hızlı erişim için hash table |
+| `DomAlgorithms.cs` | DFS, BFS, tag/class/id arama algoritmaları |
+| `TreeAnalyzer.cs` | Derinlik, kardeş düğüm ve alt ağaç analizleri |
 
 ### Arayüz
 
-1. Repo klasörünü aç.
-2. `python local_server.py` komutunu çalıştır.
-3. Tarayıcıda `http://127.0.0.1:4174/index.html` adresini aç.
-4. Örnek HTML yükleyebilir veya kendi HTML metnini girip `DOM Oluştur` butonuna basabilirsin.
+| Dosya | Sorumluluk |
+| --- | --- |
+| `index.html` | Uygulama iskeleti ve erişilebilir form yapısı |
+| `styles.css` | Görsel düzen, panel yapısı ve DOM ağacı stilleri |
+| `dom-core.mjs` | Tarayıcı tarafı parser, veri yapıları ve arama mantığı |
+| `script.mjs` | Arayüz etkileşimleri, render akışı ve düğüm ayrıntıları |
+| `phase3-ui.test.mjs` | Arayüz çekirdeği için JavaScript doğrulama testleri |
 
-Not: Arayüz `.mjs` modülleri kullandığı için doğrudan dosyayı açmak veya bazı basit statik sunucular modülleri yanlış MIME tipiyle servis edebilir. `local_server.py`, `.mjs` dosyalarını doğru şekilde `text/javascript` olarak sunar.
+## Gereksinimler
 
-### C# kütüphanesi
+Docker ile çalıştırmak için:
 
-1. Proje klasöründe `dotnet build` çalıştır.
-2. `HtmlParser` ile HTML metnini DOM ağacına çevir.
-3. `DomAlgorithms` ve `TreeAnalyzer` ile ağaç üzerinde arama ve analiz yap.
+- Docker Desktop
+- Docker Compose
 
-## Güncel Durum
+Yerel geliştirme için:
 
-Son güncellemelerle birlikte:
+- .NET SDK 9
+- Node.js
+- Python 3.11 veya üzeri
 
-- C# parser artık çalışır durumda.
-- `DOCTYPE` bildirimleri destekleniyor.
-- `br`, `meta`, `img` gibi boş HTML etiketleri parser tarafında düzgün ele alınıyor.
-- Proje `dotnet build` ile derlenebiliyor.
+Projede `npm install` veya `pip install` gerektiren ek bağımlılık yoktur.
+
+## Docker ile Çalıştırma
+
+Docker Desktop'ı başlattıktan sonra repo klasöründe şu komutu çalıştır:
+
+```powershell
+docker compose up --build
+```
+
+Arka planda çalıştırmak için:
+
+```powershell
+docker compose up --build -d
+```
+
+Uygulama adresi:
+
+```text
+http://127.0.0.1:4174/index.html
+```
+
+Kapatmak için:
+
+```powershell
+docker compose down
+```
+
+## Yerel Olarak Çalıştırma
+
+Arayüz `.mjs` modülleri kullandığı için doğrudan `index.html` dosyasını açmak yerine yerel sunucu kullanılmalıdır.
+
+```powershell
+python local_server.py
+```
+
+Sonra tarayıcıda şu adresi aç:
+
+```text
+http://127.0.0.1:4174/index.html
+```
+
+## Test ve Doğrulama
+
+C# derlemesi:
+
+```powershell
+dotnet build
+```
+
+JavaScript arayüz çekirdeği testleri:
+
+```powershell
+node phase3-ui.test.mjs
+```
+
+Yerel sunucu söz dizimi kontrolü:
+
+```powershell
+python -m py_compile local_server.py
+```
+
+Docker doğrulaması:
+
+```powershell
+docker compose up --build -d
+```
+
+## Kullanım
+
+1. Sol paneldeki HTML girdisini düzenle veya `Örnek HTML` butonunu kullan.
+2. İstersen `Düğüm sayısı` alanına değer girip `HTML Üret` ile sentetik veri oluştur.
+3. `DOM Oluştur` ile ağacı üret.
+4. Sağ panelde DOM ağacını incele.
+5. Arama alanında `#header`, `.container`, `id="brand"`, `class="item"` veya `section` gibi sorgular kullan.
+6. Seçilen veya bulunan düğümün ayrıntıları sağdaki `Düğüm Ayrıntısı` panelinde görünür.
+
+## Notlar ve Sınırlamalar
+
+- Parser kontrollü ve basitleştirilmiş HTML alt kümesi için tasarlanmıştır.
+- Yorum satırları ve `DOCTYPE` bildirimleri atlanır.
+- `br`, `img`, `meta` gibi void elementler kapanış etiketi olmadan işlenir.
+- Toplam düğüm sayısı element düğümleri ile metin düğümlerinin toplamıdır.
+- Çok derin ve olağan dışı iç içe yapılarda tarayıcı tarafındaki rekürsif işlemler sınıra yaklaşabilir; küçük ve orta ölçekli veri setleri hedeflenmiştir.
 
 ## Branch Yapısı
 
-Uzak repodaki mevcut branch'ler:
-
-- `main`: tüm fazların entegre edildiği ana dal
-- `phase1-data-structures`: temel veri yapıları
+- `main`: Entegre ve test edilmiş ana dal
+- `phase1-data-structures`: Temel veri yapıları
 - `phase1-dom-parser`: C# parser geliştirmeleri
-- `phase2-analysis-testing`: ağaç analizi ve testleme adımları
+- `phase2-analysis-testing`: Ağaç analizi ve testleme
 - `phase2-traversal-search`: DFS, BFS ve arama algoritmaları
 - `phase3-ui-dom-visualizer`: HTML/JS arayüzü ve görselleştirme

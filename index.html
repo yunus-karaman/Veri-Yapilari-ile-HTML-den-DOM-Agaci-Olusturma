@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOM Agaci Gorsellestirici</title>
+  <title>DOM Ağacı Görselleştirici</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -11,15 +11,15 @@
     <header class="hero">
       <div>
         <p class="eyebrow">Faz 3</p>
-        <h1>HTML'den DOM Agaci Gorsellestirici</h1>
+        <h1>HTML'den DOM Ağacı Görselleştirici</h1>
         <p class="lede">
-          Basitlestirilmis HTML girdisini ayrisir, DOM agacini olusturur ve id, class ya da tag sorgularini
-          vurgulayarak gosterir.
+          Basitleştirilmiş HTML girdisini ayrıştırır, DOM ağacını oluşturur ve id, class ya da tag sorgularını
+          vurgulayarak gösterir.
         </p>
       </div>
       <div class="hero-actions">
-        <button id="load-sample" class="button secondary" type="button">Ornek HTML</button>
-        <button id="parse-dom" class="button primary" type="button">DOM Olustur</button>
+        <button id="load-sample" class="button secondary" type="button">Örnek HTML</button>
+        <button id="parse-dom" class="button primary" type="button">DOM Oluştur</button>
       </div>
     </header>
 
@@ -30,7 +30,14 @@
             <p class="panel-kicker">Sol Panel</p>
             <h2>HTML Girdisi</h2>
           </div>
-          <button id="reset-editor" class="button ghost" type="button">Temizle</button>
+          <div class="editor-actions">
+            <label class="count-control">
+              <span>Düğüm sayısı</span>
+              <input id="synthetic-count" type="number" min="1" max="1000" step="1" value="50">
+            </label>
+            <button id="generate-html" class="button secondary" type="button">HTML Üret</button>
+            <button id="reset-editor" class="button ghost" type="button">Temizle</button>
+          </div>
         </div>
 
         <div class="editor-frame">
@@ -40,7 +47,7 @@
 
         <div class="metric-row">
           <article class="metric-card">
-            <span class="metric-label">Toplam dugum</span>
+            <span class="metric-label">Toplam düğüm</span>
             <strong id="node-count">0</strong>
           </article>
           <article class="metric-card">
@@ -48,7 +55,7 @@
             <strong id="max-depth">0</strong>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Text dugumu</span>
+            <span class="metric-label">Metin düğümü</span>
             <strong id="text-count">0</strong>
           </article>
         </div>
@@ -57,10 +64,10 @@
       <section class="panel panel-tree">
         <div class="panel-header panel-header-wide">
           <div>
-            <p class="panel-kicker">Sag Panel</p>
-            <h2>DOM Agaci</h2>
+            <p class="panel-kicker">Sağ Panel</p>
+            <h2>DOM Ağacı</h2>
           </div>
-          <form class="search-controls" role="search" aria-label="DOM agacinda ara">
+          <form class="search-controls" role="search" aria-label="DOM ağacında ara">
             <input
               id="search-input"
               type="text"
@@ -77,15 +84,15 @@
         </div>
 
         <div class="status-bar" aria-live="polite" aria-atomic="true">
-          <span id="status-message" class="status-pill neutral">Hazir</span>
-          <span id="search-summary" class="status-pill subtle">Sonuc yok</span>
+          <span id="status-message" class="status-pill neutral">Hazır</span>
+          <span id="search-summary" class="status-pill subtle">Sonuç yok</span>
         </div>
 
         <div class="tree-layout">
-          <div id="tree-root" class="tree-surface" role="tree" aria-label="DOM agaci"></div>
+          <div id="tree-root" class="tree-surface" role="tree" aria-label="DOM ağacı"></div>
 
           <aside class="inspector">
-            <h3>Dugum Ayrintisi</h3>
+            <h3>Düğüm Ayrıntısı</h3>
             <dl id="node-details" class="detail-list">
               <div>
                 <dt>Etiket</dt>
@@ -104,11 +111,11 @@
                 <dd>-</dd>
               </div>
               <div>
-                <dt>Kardes sayisi</dt>
+                <dt>Kardeş sayısı</dt>
                 <dd>-</dd>
               </div>
               <div>
-                <dt>Alt agac boyutu</dt>
+                <dt>Alt ağaç boyutu</dt>
                 <dd>-</dd>
               </div>
             </dl>
