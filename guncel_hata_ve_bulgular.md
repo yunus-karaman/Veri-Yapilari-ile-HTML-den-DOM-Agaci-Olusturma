@@ -417,3 +417,66 @@ Docker Compose tek komutla çalıştırma akışı eklendikten sonra `python loc
 
 **Uygulanan Çözüm:**
 `local_server.py` kaldırıldı. Docker runtime aşaması Nginx'e taşındı. README, Docker Compose'u tek resmi çalıştırma yolu olarak gösterecek şekilde sadeleştirildi. Compose içindeki Python'a özel `HOST` ve `PORT` ortam değişkenleri kaldırıldı.
+
+## main - Dayanıklılık Testleri Sonrası Düzeltmeler
+
+### Metin ve Attribute İçindeki `<` / `>` Karakterlerinin Parser'ı Bozması
+
+**Etkilenen Dosyalar:**
+- `dom-core.mjs`
+- `Parser.cs`
+
+**Problem:**
+Regex tabanlı token üretimi, metin içindeki `<` karakterini etiket başlangıcı sanabiliyor ve attribute değeri içinde geçen `>` karakterinde etiketi erken kapatıyordu. Bu nedenle `<p>5 < 10 ve 20 > 3</p>` hatalı şekilde reddediliyor, `<div title="5 > 3">...</div>` ise sessizce yanlış DOM ağacı üretiyordu.
+
+**Uygulanan Çözüm:**
+Regex tabanlı etiket okuma yerine quote durumunu takip eden durum-bazlı tokenizer eklendi. Artık `>` karakteri yalnızca attribute quote dışında olduğunda etiketi kapatıyor; geçerli etiket başlangıcı olmayan `<` karakterleri metin olarak korunuyor.
+
+### Script, Style, Textarea ve Title İçeriklerinin Yanlış Ayrıştırılması
+
+**Etkilenen Dosyalar:**
+- `dom-core.mjs`
+- `Parser.cs`
+
+**Problem:**
+`script`, `style`, `textarea` ve `title` içindeki `<` / `>` karakterleri normal HTML etiketi gibi ayrıştırılmaya çalışılıyordu. Bu durum script/style içeriklerinde hataya, textarea/title içeriklerinde ise semantik olarak yanlış ağaç üretimine yol açıyordu.
+
+**Uygulanan Çözüm:**
+Bu elementler raw text kapsamına alındı. Açılış etiketi görüldükten sonra ilgili kapanış etiketine kadar olan içerik tek metin düğümü olarak işleniyor.
+
+### Aşırı Derin DOM Ağaçlarında Çağrı Yığını Taşması
+
+**Etkilenen Dosyalar:**
+- `dom-core.mjs`
+- `script.mjs`
+
+**Problem:**
+DFS arama, subtree analizi, düğüm düzleştirme ve arayüz render işlemlerinde recursive yaklaşım kullanılıyordu. 10.000 seviye iç içe HTML gibi uç örneklerde JavaScript çağrı yığını sınırı aşılabiliyordu.
+
+**Uygulanan Çözüm:**
+`depthFirstSearch`, `analyzeSubtree` ve `flattenNodesWithDepth` iteratif stack yapısına taşındı. Arayüzde seçili düğüm yolu parent zinciriyle çıkarılıyor ve ağaç render işlemi recursive çağrı yerine manuel stack ile yapılıyor.
+
+### Favicon İsteğinin Yanlışlıkla HTML Döndürmesi
+
+**Etkilenen Dosyalar:**
+- `nginx.conf`
+
+**Problem:**
+`/favicon.ico` isteği SPA fallback nedeniyle `index.html` döndürebiliyordu. Bu kritik çalışma hatası değildi ancak dağıtım çıktısını temiz olmayan hale getiriyordu.
+
+**Uygulanan Çözüm:**
+Nginx konfigürasyonuna `/favicon.ico` için `204` dönen özel location eklendi.
+
+### Dayanıklılık Retest Sonucu
+
+**Etkilenen Dosyalar:**
+- `dom-core.mjs`
+- `script.mjs`
+- `Parser.cs`
+- `nginx.conf`
+
+**Problem:**
+Senior test geçişinde bulunan zayıf noktaların gerçekten kapandığının doğrulanması gerekiyordu.
+
+**Uygulanan Çözüm:**
+`dotnet build`, `node phase3-ui.test.mjs`, özel stres testi ve `docker compose up --build -d` yeniden çalıştırıldı. Metin içindeki `<`, attribute içindeki `>`, `script/style/textarea/title` raw text içerikleri, 10.000 derinlikli ağaç, 10.000 düğüm DFS araması, 1000 düğümlü sentetik üretim ve geçersiz HTML reddi başarıyla doğrulandı. Canlı Chrome testinde console hatası olmadan ilgili arayüz senaryoları geçti.

@@ -96,10 +96,10 @@ function createNodeBadge(text) {
   return badge;
 }
 
-function nodeElementClass(node, matches, selectedNodeId) {
+function nodeElementClass(node, matchIds, selectedNodeId) {
   const classes = [node.children.length > 0 ? "tree-branch" : "tree-leaf"];
 
-  if (matches.some((match) => match.uid === node.uid)) {
+  if (matchIds.has(node.uid)) {
     classes.push("is-match");
   }
 
@@ -110,16 +110,16 @@ function nodeElementClass(node, matches, selectedNodeId) {
   return classes.join(" ");
 }
 
-function containsNode(root, nodeId) {
-  if (!root || !nodeId) {
-    return false;
+function selectedPathIds(selectedNodeId) {
+  const ids = new Set();
+  let cursor = state.uidIndex?.get(selectedNodeId) || null;
+
+  while (cursor) {
+    ids.add(cursor.uid);
+    cursor = cursor.parent;
   }
 
-  if (root.uid === nodeId) {
-    return true;
-  }
-
-  return root.children.some((child) => containsNode(child, nodeId));
+  return ids;
 }
 
 function createLabelContent(node) {
@@ -149,33 +149,58 @@ function createLabelContent(node) {
   return fragment;
 }
 
-function renderTreeNode(node, matches, selectedNodeId, depth = 0) {
-  const hasChildren = node.children.length > 0;
-
-  if (hasChildren) {
-    const details = document.createElement("details");
-    details.className = nodeElementClass(node, matches, selectedNodeId);
-    details.dataset.nodeId = node.uid;
-    details.open = depth < 2 ||
-      matches.some((match) => match.uid === node.uid) ||
-      containsNode(node, selectedNodeId);
-
-    const summary = document.createElement("summary");
-    summary.append(createLabelContent(node));
-    details.append(summary);
-
-    for (const child of node.children) {
-      details.append(renderTreeNode(child, matches, selectedNodeId, depth + 1));
+function renderTreeNode(node, matchIds, selectedNodeId, selectedPath, depth = 0) {
+  function createShell(current, currentDepth) {
+    if (current.children.length === 0) {
+      const leaf = document.createElement("div");
+      leaf.className = nodeElementClass(current, matchIds, selectedNodeId);
+      leaf.dataset.nodeId = current.uid;
+      leaf.append(createLabelContent(current));
+      return leaf;
     }
 
+    const details = document.createElement("details");
+    details.className = nodeElementClass(current, matchIds, selectedNodeId);
+    details.dataset.nodeId = current.uid;
+    details.open = currentDepth < 2 ||
+      matchIds.has(current.uid) ||
+      selectedPath.has(current.uid);
+
+    const summary = document.createElement("summary");
+    summary.append(createLabelContent(current));
+    details.append(summary);
     return details;
   }
 
-  const leaf = document.createElement("div");
-  leaf.className = nodeElementClass(node, matches, selectedNodeId);
-  leaf.dataset.nodeId = node.uid;
-  leaf.append(createLabelContent(node));
-  return leaf;
+  const rootElement = createShell(node, depth);
+  const stack = node.children.length > 0
+    ? [{ node, element: rootElement, depth, childIndex: 0 }]
+    : [];
+
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+
+    if (frame.childIndex >= frame.node.children.length) {
+      stack.pop();
+      continue;
+    }
+
+    const child = frame.node.children[frame.childIndex];
+    frame.childIndex += 1;
+    const childElement = createShell(child, frame.depth + 1);
+    frame.element.append(childElement);
+
+    if (child.children.length > 0) {
+      stack.push({
+        node: child,
+        element: childElement,
+        depth: frame.depth + 1,
+        childIndex: 0,
+      });
+    }
+  }
+
+  return rootElement;
 }
 
 function renderTree() {
@@ -190,8 +215,11 @@ function renderTree() {
     return;
   }
 
+  const matchIds = new Set(state.matches.map((match) => match.uid));
+  const pathIds = selectedPathIds(state.selectedNodeId);
+
   for (const child of state.root.children) {
-    elements.treeRoot.append(renderTreeNode(child, state.matches, state.selectedNodeId, 1));
+    elements.treeRoot.append(renderTreeNode(child, matchIds, state.selectedNodeId, pathIds, 1));
   }
 }
 

@@ -15,6 +15,13 @@
   "wbr",
 ]);
 
+const RAW_TEXT_ELEMENTS = new Set([
+  "script",
+  "style",
+  "textarea",
+  "title",
+]);
+
 class StackNode {
   constructor(value, next = null) {
     this.value = value;
@@ -188,51 +195,152 @@ function addChild(parent, child) {
 
 function parseAttributes(rawTag) {
   const attributes = {};
-  const attributePattern = /([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
+  const source = rawTag.replace(/^[^\s/]+/, "");
+  const attributePattern = /([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
   let match;
 
-  while ((match = attributePattern.exec(rawTag)) !== null) {
+  while ((match = attributePattern.exec(source)) !== null) {
     attributes[match[1]] = match[3] ?? match[4] ?? match[5] ?? "";
   }
 
   return attributes;
 }
 
-export function tokenize(html) {
-  const tokenPattern = /<!--[\s\S]*?-->|<![^>]*>|<\/?[^>]+>|[^<]+/g;
-  const tokens = [];
-  let match;
+function isTagNameStart(character) {
+  return /[A-Za-z]/.test(character);
+}
 
-  while ((match = tokenPattern.exec(html)) !== null) {
-    const value = match[0];
+function readTagAt(html, startIndex) {
+  if (html[startIndex] !== "<") {
+    return null;
+  }
+
+  if (html.startsWith("<!--", startIndex)) {
+    const endIndex = html.indexOf("-->", startIndex + 4);
+    return endIndex === -1
+      ? { value: html.slice(startIndex), endIndex: html.length }
+      : { value: html.slice(startIndex, endIndex + 3), endIndex: endIndex + 3 };
+  }
+
+  if (html[startIndex + 1] === "!") {
+    const endIndex = html.indexOf(">", startIndex + 2);
+    return endIndex === -1
+      ? { value: html.slice(startIndex), endIndex: html.length }
+      : { value: html.slice(startIndex, endIndex + 1), endIndex: endIndex + 1 };
+  }
+
+  const nameIndex = html[startIndex + 1] === "/" ? startIndex + 2 : startIndex + 1;
+  if (!isTagNameStart(html[nameIndex] || "")) {
+    return null;
+  }
+
+  let quote = null;
+  for (let index = nameIndex + 1; index < html.length; index += 1) {
+    const character = html[index];
+
+    if (quote) {
+      if (character === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (character === "\"" || character === "'") {
+      quote = character;
+      continue;
+    }
+
+    if (character === ">") {
+      return { value: html.slice(startIndex, index + 1), endIndex: index + 1 };
+    }
+  }
+
+  return null;
+}
+
+function addTextToken(tokens, value) {
+  if (value.trim()) {
+    tokens.push({ type: "text", value });
+  }
+}
+
+function findRawTextClose(html, startIndex, tagName) {
+  const closePattern = new RegExp(`</\\s*${tagName}\\s*>`, "i");
+  const match = closePattern.exec(html.slice(startIndex));
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    startIndex: startIndex + match.index,
+    endIndex: startIndex + match.index + match[0].length,
+    value: match[0],
+  };
+}
+
+export function tokenize(html) {
+  const tokens = [];
+  let index = 0;
+  let textStart = 0;
+
+  while (index < html.length) {
+    if (html[index] !== "<") {
+      index += 1;
+      continue;
+    }
+
+    const tag = readTagAt(html, index);
+    if (!tag) {
+      index += 1;
+      continue;
+    }
+
+    addTextToken(tokens, html.slice(textStart, index));
+    const { value } = tag;
 
     if (value.startsWith("<!--")) {
+      index = tag.endIndex;
+      textStart = index;
       continue;
     }
 
     if (value.startsWith("<!")) {
+      index = tag.endIndex;
+      textStart = index;
       continue;
     }
 
     if (value.startsWith("</")) {
       tokens.push({ type: "closeTag", value });
+      index = tag.endIndex;
+      textStart = index;
       continue;
     }
 
-    if (value.startsWith("<")) {
-      const { tagName } = parseTag(value);
-      tokens.push({
-        type: value.endsWith("/>") || VOID_ELEMENTS.has(tagName) ? "selfClosingTag" : "openTag",
-        value,
-      });
-      continue;
-    }
+    const { tagName } = parseTag(value);
+    const tokenType = value.endsWith("/>") || VOID_ELEMENTS.has(tagName) ? "selfClosingTag" : "openTag";
+    tokens.push({ type: tokenType, value });
+    index = tag.endIndex;
+    textStart = index;
 
-    if (value.trim()) {
-      tokens.push({ type: "text", value });
+    if (tokenType === "openTag" && RAW_TEXT_ELEMENTS.has(tagName)) {
+      const closeTag = findRawTextClose(html, index, tagName);
+      if (!closeTag) {
+        addTextToken(tokens, html.slice(index));
+        index = html.length;
+        textStart = index;
+        break;
+      }
+
+      addTextToken(tokens, html.slice(index, closeTag.startIndex));
+      tokens.push({ type: "closeTag", value: closeTag.value });
+      index = closeTag.endIndex;
+      textStart = index;
     }
   }
 
+  addTextToken(tokens, html.slice(textStart));
   return tokens;
 }
 
@@ -340,12 +448,17 @@ export function depthFirstSearch(root, predicate, matches = []) {
     return matches;
   }
 
-  if (predicate(root)) {
-    matches.push(root);
-  }
+  const stack = [root];
+  while (stack.length > 0) {
+    const node = stack.pop();
 
-  for (const child of root.children) {
-    depthFirstSearch(child, predicate, matches);
+    if (predicate(node)) {
+      matches.push(node);
+    }
+
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push(node.children[index]);
+    }
   }
 
   return matches;
@@ -372,15 +485,28 @@ export function getSiblings(node) {
 }
 
 export function analyzeSubtree(node) {
-  let size = 1;
-  let textNodes = node.type === "text" ? 1 : 0;
-  let deepest = calculateDepth(node);
+  if (!node) {
+    return { size: 0, textNodes: 0, deepest: 0 };
+  }
 
-  for (const child of node.children) {
-    const childAnalysis = analyzeSubtree(child);
-    size += childAnalysis.size;
-    textNodes += childAnalysis.textNodes;
-    deepest = Math.max(deepest, childAnalysis.deepest);
+  let size = 0;
+  let textNodes = 0;
+  let deepest = calculateDepth(node);
+  const stack = [node];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    size += 1;
+
+    if (current.type === "text") {
+      textNodes += 1;
+    }
+
+    deepest = Math.max(deepest, calculateDepth(current));
+
+    for (const child of current.children) {
+      stack.push(child);
+    }
   }
 
   return { size, textNodes, deepest };
@@ -392,20 +518,17 @@ export function flattenNodes(root) {
 
 export function flattenNodesWithDepth(root) {
   const nodes = [];
+  const stack = root ? [{ node: root, depth: 0 }] : [];
 
-  function walk(node, depth) {
-    if (!node) {
-      return;
-    }
-
+  while (stack.length > 0) {
+    const { node, depth } = stack.pop();
     nodes.push({ node, depth });
 
-    for (const child of node.children) {
-      walk(child, depth + 1);
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push({ node: node.children[index], depth: depth + 1 });
     }
   }
 
-  walk(root, 0);
   return nodes;
 }
 

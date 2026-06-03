@@ -36,6 +36,11 @@ namespace DomParser
             "input", "link", "meta", "param", "source", "track", "wbr"
         };
 
+        private static readonly HashSet<string> RawTextElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "script", "style", "textarea", "title"
+        };
+
         // O(1) hızında id ile arama yapabilmek için kullanılacak Hash Tablosu
         public HashTable ElementTable { get; private set; }
 
@@ -123,43 +128,149 @@ namespace DomParser
                 return tokens;
             }
 
-            string pattern = @"<!--[\s\S]*?-->|<![^>]*>|</?[^>]+>|[^<]+";
-            MatchCollection matches = Regex.Matches(html, pattern);
+            int index = 0;
+            int textStart = 0;
 
-            foreach (Match match in matches)
+            while (index < html.Length)
             {
-                string value = match.Value;
+                if (html[index] != '<')
+                {
+                    index++;
+                    continue;
+                }
+
+                if (!TryReadTagAt(html, index, out string value, out int endIndex))
+                {
+                    index++;
+                    continue;
+                }
+
+                AddTextToken(tokens, html.Substring(textStart, index - textStart));
 
                 if (value.StartsWith("<!--", StringComparison.Ordinal) ||
                     value.StartsWith("<!", StringComparison.Ordinal))
                 {
+                    index = endIndex;
+                    textStart = index;
                     continue;
                 }
 
                 if (value.StartsWith("</", StringComparison.Ordinal))
                 {
                     tokens.Add(new Token(TokenType.CloseTag, value));
+                    index = endIndex;
+                    textStart = index;
                     continue;
                 }
 
-                if (value.StartsWith("<", StringComparison.Ordinal))
-                {
-                    string tagName = ExtractTagName(value);
-                    TokenType tokenType = value.EndsWith("/>", StringComparison.Ordinal) || VoidElements.Contains(tagName)
-                        ? TokenType.SelfClosingTag
-                        : TokenType.OpenTag;
+                string tagName = ExtractTagName(value);
+                TokenType tokenType = value.EndsWith("/>", StringComparison.Ordinal) || VoidElements.Contains(tagName)
+                    ? TokenType.SelfClosingTag
+                    : TokenType.OpenTag;
 
-                    tokens.Add(new Token(tokenType, value));
-                    continue;
-                }
+                tokens.Add(new Token(tokenType, value));
+                index = endIndex;
+                textStart = index;
 
-                if (!string.IsNullOrWhiteSpace(value))
+                if (tokenType == TokenType.OpenTag && RawTextElements.Contains(tagName))
                 {
-                    tokens.Add(new Token(TokenType.Text, value));
+                    Match closeMatch = Regex.Match(
+                        html.Substring(index),
+                        $@"</\s*{Regex.Escape(tagName)}\s*>",
+                        RegexOptions.IgnoreCase);
+
+                    if (!closeMatch.Success)
+                    {
+                        AddTextToken(tokens, html.Substring(index));
+                        index = html.Length;
+                        textStart = index;
+                        break;
+                    }
+
+                    int closeStart = index + closeMatch.Index;
+                    AddTextToken(tokens, html.Substring(index, closeStart - index));
+                    tokens.Add(new Token(TokenType.CloseTag, closeMatch.Value));
+                    index = closeStart + closeMatch.Length;
+                    textStart = index;
                 }
             }
 
+            AddTextToken(tokens, html.Substring(textStart));
             return tokens;
+        }
+
+        private void AddTextToken(List<Token> tokens, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                tokens.Add(new Token(TokenType.Text, value));
+            }
+        }
+
+        private bool TryReadTagAt(string html, int startIndex, out string value, out int endIndex)
+        {
+            value = string.Empty;
+            endIndex = startIndex;
+
+            if (html[startIndex] != '<')
+            {
+                return false;
+            }
+
+            if (html.Substring(startIndex).StartsWith("<!--", StringComparison.Ordinal))
+            {
+                int commentEnd = html.IndexOf("-->", startIndex + 4, StringComparison.Ordinal);
+                endIndex = commentEnd == -1 ? html.Length : commentEnd + 3;
+                value = html.Substring(startIndex, endIndex - startIndex);
+                return true;
+            }
+
+            if (startIndex + 1 < html.Length && html[startIndex + 1] == '!')
+            {
+                int declarationEnd = html.IndexOf('>', startIndex + 2);
+                endIndex = declarationEnd == -1 ? html.Length : declarationEnd + 1;
+                value = html.Substring(startIndex, endIndex - startIndex);
+                return true;
+            }
+
+            int nameIndex = startIndex + 1 < html.Length && html[startIndex + 1] == '/'
+                ? startIndex + 2
+                : startIndex + 1;
+
+            if (nameIndex >= html.Length || !char.IsLetter(html[nameIndex]))
+            {
+                return false;
+            }
+
+            char quote = '\0';
+            for (int i = nameIndex + 1; i < html.Length; i++)
+            {
+                char current = html[i];
+
+                if (quote != '\0')
+                {
+                    if (current == quote)
+                    {
+                        quote = '\0';
+                    }
+                    continue;
+                }
+
+                if (current == '"' || current == '\'')
+                {
+                    quote = current;
+                    continue;
+                }
+
+                if (current == '>')
+                {
+                    endIndex = i + 1;
+                    value = html.Substring(startIndex, endIndex - startIndex);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // YARDIMCI METOT: Etiket içeriğinden DomNode üretme
@@ -179,9 +290,10 @@ namespace DomParser
             }
 
             DomNode node = new DomNode(parts[0].ToLowerInvariant());
+            string attributeSource = parts.Length > 1 ? parts[1] : string.Empty;
             MatchCollection attributeMatches = Regex.Matches(
-                normalized,
-                "([A-Za-z_:][-A-Za-z0-9_:.]*)\\s*=\\s*(\"([^\"]*)\"|'([^']*)'|([^\\s\"'=<>`]+))");
+                attributeSource,
+                "([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\\s*=\\s*(\"([^\"]*)\"|'([^']*)'|([^\\s\"'=<>`]+)))?");
 
             foreach (Match attributeMatch in attributeMatches)
             {
