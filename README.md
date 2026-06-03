@@ -2,6 +2,8 @@
 
 Bu proje, ham HTML metnini basitleştirilmiş bir parser ile ayrıştırarak bellekte DOM benzeri hiyerarşik bir ağaç yapısı oluşturur. Amaç tam kapsamlı bir tarayıcı motoru geliştirmek değil; DOM oluşturma sürecini veri yapıları, arama algoritmaları ve görselleştirme üzerinden anlaşılır şekilde modellemektir.
 
+Parser kontrollü bir HTML alt kümesini hedefler. Tarayıcıların yaptığı CSS hesaplama, JavaScript çalıştırma, layout/render motoru davranışı veya hatalı HTML'i otomatik onarma bu projenin kapsamı değildir.
+
 ## Temel Özellikler
 
 - HTML etiketlerinden N-ary tree tabanlı DOM ağacı oluşturma
@@ -12,6 +14,8 @@ Bu proje, ham HTML metnini basitleştirilmiş bir parser ile ayrıştırarak bel
 - Ağaç derinliği, kardeş düğümler ve alt ağaç boyutu analizi
 - Açılır-kapanır DOM ağacı görselleştirmesi
 - Farklı düğüm sayıları için sentetik HTML üretimi
+- Çok satırlı, tab veya newline içeren attribute yazımlarını ayrıştırma
+- `br`, `img`, `input`, `meta` gibi void elementleri kapanış etiketi beklemeden işleme
 - Docker Compose ile tek komutla çalıştırma
 
 ## Mimari
@@ -28,6 +32,8 @@ Bu proje, ham HTML metnini basitleştirilmiş bir parser ile ayrıştırarak bel
 | `DomAlgorithms.cs` | DFS, BFS, tag/class/id arama algoritmaları |
 | `TreeAnalyzer.cs` | Derinlik, kardeş düğüm ve alt ağaç analizleri |
 
+C# tarafında `Stack`, `Queue` ve `HashTable` sınıfları sıfırdan yazılmıştır. Parser açılış/kapanış etiketlerini işlerken custom `Stack` kullanır. BFS custom `Queue`, DFS custom `Stack` kullanır. `HashTable` polynomial rolling hash, separate chaining ve `0.75` yük faktörü sonrası rehash ile çalışır.
+
 ### Arayüz
 
 | Dosya | Sorumluluk |
@@ -37,6 +43,8 @@ Bu proje, ham HTML metnini basitleştirilmiş bir parser ile ayrıştırarak bel
 | `dom-core.mjs` | Tarayıcı tarafı parser, veri yapıları ve arama mantığı |
 | `script.mjs` | Arayüz etkileşimleri, render akışı ve düğüm ayrıntıları |
 | `phase3-ui.test.mjs` | Arayüz çekirdeği için JavaScript doğrulama testleri |
+
+JavaScript tarafında da `Stack`, `Queue` ve `HashTable` sıfırdan uygulanmıştır. UI parser custom `Stack` ile DOM ağacını kurar, BFS custom `Queue` kullanır, DFS ve alt ağaç dolaşımları custom `Stack` kullanır. `idIndex` ve `uidIndex` hash tabloları separate chaining ve rehash destekler.
 
 ## Gereksinimler
 
@@ -92,9 +100,13 @@ JavaScript arayüz çekirdeği testleri:
 node phase3-ui.test.mjs
 ```
 
+Bu testler parser whitespace davranışını, void elementleri, hatalı kapanışları, HashTable rehash sonrasını, custom Stack/Queue dolaşım sıralarını, `O(1)` id aramasını ve sentetik HTML düğüm sayısını doğrular.
+
 Docker doğrulaması:
 
 ```powershell
+docker compose config
+docker compose build
 docker compose up --build -d
 ```
 
@@ -114,6 +126,15 @@ docker compose up --build -d
 - `br`, `img`, `meta` gibi void elementler kapanış etiketi olmadan işlenir.
 - Toplam düğüm sayısı element düğümleri ile metin düğümlerinin toplamıdır.
 - Çok derin ve olağan dışı iç içe yapılarda tarayıcı tarafındaki rekürsif işlemler sınıra yaklaşabilir; küçük ve orta ölçekli veri setleri hedeflenmiştir.
+- CSS selector motoru yoktur; arama `id`, `class` ve tag adı ile sınırlıdır.
+- CSS hesaplama, layout, gerçek tarayıcı uyumluluğu ve JavaScript çalıştırma desteklenmez.
+- Hatalı HTML'i tarayıcı gibi otomatik tamir etmek hedeflenmez; uyumsuz veya açık kalan etiketler kontrollü hata üretir.
+
+## Teslim Notları
+
+- TODO: Demo videosu linki eklenecek.
+- TODO: UML/rapor dosyası teslim kapsamına ayrıca eklenecekse bağlantısı burada belirtilecek.
+- AI kullanım notları / prompt dökümü: TODO, gerçek kullanılan prompt ve yardım adımları teslim formatına göre eklenecek. Sahte prompt üretilmemiştir.
 
 ## Branch Yapısı
 

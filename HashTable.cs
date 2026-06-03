@@ -26,6 +26,9 @@ namespace DomParser
 
         public HashTable(int capacity = 100)
         {
+            if (capacity <= 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be positive");
+
             this.capacity = capacity;
             buckets = new HashNode[capacity];
             count = 0;
@@ -49,6 +52,8 @@ namespace DomParser
 
         public void Put(string key, DomNode value)
         {
+            ValidateKey(key);
+
             int index = GetBucketIndex(key, capacity);
             HashNode head = buckets[index];
 
@@ -77,6 +82,9 @@ namespace DomParser
 
         public DomNode GetElementById(string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+                return null;
+
             int index = GetBucketIndex(key, capacity);
             HashNode current = buckets[index];
 
@@ -94,6 +102,9 @@ namespace DomParser
 
         public bool Remove(string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+                return false;
+
             int index = GetBucketIndex(key, capacity);
             HashNode current = buckets[index];
             HashNode previous = null;
@@ -140,6 +151,12 @@ namespace DomParser
 
             buckets = newBuckets;
             capacity = newCapacity;
+        }
+
+        private static void ValidateKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("HashTable key cannot be null or empty", nameof(key));
         }
     }
 }

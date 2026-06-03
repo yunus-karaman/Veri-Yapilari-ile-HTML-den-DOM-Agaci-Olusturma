@@ -115,20 +115,34 @@ export class Queue {
 
 export class HashTable {
   constructor(capacity = 127) {
+    if (!Number.isInteger(capacity) || capacity <= 0) {
+      throw new Error("HashTable kapasitesi pozitif bir tam sayı olmalı.");
+    }
+
     this.capacity = capacity;
     this.buckets = new Array(capacity).fill(null);
+    this.count = 0;
+    this.loadFactorLimit = 0.75;
   }
 
-  hash(key) {
+  bucketIndex(key, capacity = this.capacity) {
+    if (typeof key !== "string" || key.trim() === "") {
+      throw new Error("HashTable anahtarı boş olamaz.");
+    }
+
     let total = 0;
     for (let index = 0; index < key.length; index += 1) {
-      total = (total * 31 + key.charCodeAt(index)) % this.capacity;
+      total = (total * 31 + key.charCodeAt(index)) % capacity;
     }
     return total;
   }
 
+  hash(key) {
+    return this.bucketIndex(key);
+  }
+
   set(key, value) {
-    const index = this.hash(key);
+    const index = this.bucketIndex(key);
     let current = this.buckets[index];
 
     while (current) {
@@ -140,10 +154,19 @@ export class HashTable {
     }
 
     this.buckets[index] = new HashEntry(key, value, this.buckets[index]);
+    this.count += 1;
+
+    if (this.count / this.capacity > this.loadFactorLimit) {
+      this.rehash();
+    }
   }
 
   get(key) {
-    let current = this.buckets[this.hash(key)];
+    if (typeof key !== "string" || key.trim() === "") {
+      return null;
+    }
+
+    let current = this.buckets[this.bucketIndex(key)];
 
     while (current) {
       if (current.key === key) {
@@ -153,6 +176,50 @@ export class HashTable {
     }
 
     return null;
+  }
+
+  remove(key) {
+    if (typeof key !== "string" || key.trim() === "") {
+      return false;
+    }
+
+    const index = this.bucketIndex(key);
+    let current = this.buckets[index];
+    let previous = null;
+
+    while (current) {
+      if (current.key === key) {
+        if (previous) {
+          previous.next = current.next;
+        } else {
+          this.buckets[index] = current.next;
+        }
+        this.count -= 1;
+        return true;
+      }
+
+      previous = current;
+      current = current.next;
+    }
+
+    return false;
+  }
+
+  rehash() {
+    const oldBuckets = this.buckets;
+    this.capacity *= 2;
+    this.buckets = new Array(this.capacity).fill(null);
+
+    for (const bucket of oldBuckets) {
+      let current = bucket;
+      while (current) {
+        const next = current.next;
+        const index = this.bucketIndex(current.key);
+        current.next = this.buckets[index];
+        this.buckets[index] = current;
+        current = next;
+      }
+    }
   }
 }
 
@@ -200,7 +267,7 @@ function parseAttributes(rawTag) {
   let match;
 
   while ((match = attributePattern.exec(source)) !== null) {
-    attributes[match[1]] = match[3] ?? match[4] ?? match[5] ?? "";
+    attributes[match[1].toLowerCase()] = match[3] ?? match[4] ?? match[5] ?? "";
   }
 
   return attributes;
@@ -448,8 +515,9 @@ export function depthFirstSearch(root, predicate, matches = []) {
     return matches;
   }
 
-  const stack = [root];
-  while (stack.length > 0) {
+  const stack = new Stack();
+  stack.push(root);
+  while (!stack.isEmpty()) {
     const node = stack.pop();
 
     if (predicate(node)) {
@@ -486,15 +554,17 @@ export function getSiblings(node) {
 
 export function analyzeSubtree(node) {
   if (!node) {
-    return { size: 0, textNodes: 0, deepest: 0 };
+    return { size: 0, textNodes: 0, height: -1, depth: 0, deepest: 0 };
   }
 
   let size = 0;
   let textNodes = 0;
-  let deepest = calculateDepth(node);
-  const stack = [node];
+  const rootDepth = calculateDepth(node);
+  let deepest = rootDepth;
+  const stack = new Stack();
+  stack.push(node);
 
-  while (stack.length > 0) {
+  while (!stack.isEmpty()) {
     const current = stack.pop();
     size += 1;
 
@@ -509,7 +579,7 @@ export function analyzeSubtree(node) {
     }
   }
 
-  return { size, textNodes, deepest };
+  return { size, textNodes, height: deepest - rootDepth, depth: rootDepth, deepest };
 }
 
 export function flattenNodes(root) {
@@ -518,9 +588,13 @@ export function flattenNodes(root) {
 
 export function flattenNodesWithDepth(root) {
   const nodes = [];
-  const stack = root ? [{ node: root, depth: 0 }] : [];
+  const stack = new Stack();
 
-  while (stack.length > 0) {
+  if (root) {
+    stack.push({ node: root, depth: 0 });
+  }
+
+  while (!stack.isEmpty()) {
     const { node, depth } = stack.pop();
     nodes.push({ node, depth });
 
@@ -619,7 +693,7 @@ export function searchTree(root, idIndex, query, strategy = "auto") {
     }
 
     if (parsed.mode === "class") {
-      return node.classList.includes(parsed.value);
+      return node.classList.some((className) => className.toLowerCase() === parsed.value.toLowerCase());
     }
 
     return node.tagName.toLowerCase() === parsed.value.toLowerCase();

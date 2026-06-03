@@ -283,14 +283,14 @@ namespace DomParser
                 .TrimEnd('/')
                 .Trim();
 
-            string[] parts = normalized.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
+            string tagName = ExtractTagName(tagContent);
+            if (tagName.Length == 0)
             {
                 throw new InvalidOperationException("Gecersiz etiket bulundu.");
             }
 
-            DomNode node = new DomNode(parts[0].ToLowerInvariant());
-            string attributeSource = parts.Length > 1 ? parts[1] : string.Empty;
+            DomNode node = new DomNode(tagName);
+            string attributeSource = normalized.Substring(ReadRawTagName(normalized).Length);
             MatchCollection attributeMatches = Regex.Matches(
                 attributeSource,
                 "([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\\s*=\\s*(\"([^\"]*)\"|'([^']*)'|([^\\s\"'=<>`]+)))?");
@@ -311,7 +311,7 @@ namespace DomParser
 
                 if (attributeName.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (string className in attributeValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string className in attributeValue.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
                     {
                         node.AddClass(className);
                     }
@@ -323,6 +323,11 @@ namespace DomParser
 
         private string ExtractTagName(string tagContent)
         {
+            return ReadRawTagName(NormalizeTagContent(tagContent)).ToLowerInvariant();
+        }
+
+        private string NormalizeTagContent(string tagContent)
+        {
             string normalized = tagContent
                 .Trim()
                 .TrimStart('<')
@@ -330,8 +335,13 @@ namespace DomParser
                 .TrimEnd('/')
                 .Trim();
 
-            string[] parts = normalized.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            return parts.Length == 0 ? string.Empty : parts[0].ToLowerInvariant();
+            return normalized;
+        }
+
+        private string ReadRawTagName(string normalizedTagContent)
+        {
+            Match match = Regex.Match(normalizedTagContent, @"^[^\s/]+");
+            return match.Success ? match.Value : string.Empty;
         }
     }
 }

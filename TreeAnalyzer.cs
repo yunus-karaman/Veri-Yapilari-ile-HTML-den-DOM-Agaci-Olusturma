@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace DomParser
 {
+    public class SubtreeAnalysis
+    {
+        public int Size { get; set; }
+        public int TextNodeCount { get; set; }
+        public int Height { get; set; }
+        public int Depth { get; set; }
+    }
+
     // Kapsam (Scope) hatasını çözmek için metotlar bir sınıf içine alındı
     public class TreeAnalyzer
     {
@@ -89,6 +97,58 @@ namespace DomParser
             {
                 FindElementsByTagName(child, targetTag, results);
             }
+        }
+
+        public static int CountSubtreeNodes(DomNode node)
+        {
+            if (node == null) return 0;
+
+            int count = 1;
+            if (node.Children == null) return count;
+
+            foreach (var child in node.Children)
+            {
+                count += CountSubtreeNodes(child);
+            }
+
+            return count;
+        }
+
+        public static int CountTextNodes(DomNode node)
+        {
+            if (node == null) return 0;
+
+            int count = string.Equals(node.TagName, "#text", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+            if (node.Children == null) return count;
+
+            foreach (var child in node.Children)
+            {
+                count += CountTextNodes(child);
+            }
+
+            return count;
+        }
+
+        public static SubtreeAnalysis AnalyzeSubtree(DomNode node)
+        {
+            if (node == null)
+            {
+                return new SubtreeAnalysis
+                {
+                    Size = 0,
+                    TextNodeCount = 0,
+                    Height = -1,
+                    Depth = 0
+                };
+            }
+
+            return new SubtreeAnalysis
+            {
+                Size = CountSubtreeNodes(node),
+                TextNodeCount = CountTextNodes(node),
+                Height = GetHeight(node),
+                Depth = GetDepth(node)
+            };
         }
     }
 }

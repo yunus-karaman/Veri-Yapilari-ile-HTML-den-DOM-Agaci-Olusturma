@@ -14,6 +14,9 @@ namespace DomParser
 
         public DomNode(string tagName)
         {
+            if (string.IsNullOrWhiteSpace(tagName))
+                throw new ArgumentException("Tag name cannot be empty", nameof(tagName));
+
             TagName = tagName;
             Id = null;
             TextContent = string.Empty;
@@ -38,6 +41,9 @@ namespace DomParser
 
         public void AddClass(string className)
         {
+            if (string.IsNullOrWhiteSpace(className))
+                return;
+
             Classes.Add(className);
         }
     }
