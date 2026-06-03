@@ -49,7 +49,6 @@ Yerel geliştirme için:
 
 - .NET SDK 9
 - Node.js
-- Python 3.11 veya üzeri
 
 Projede `npm install` veya `pip install` gerektiren ek bağımlılık yoktur.
 
@@ -79,20 +78,6 @@ Kapatmak için:
 docker compose down
 ```
 
-## Yerel Olarak Çalıştırma
-
-Arayüz `.mjs` modülleri kullandığı için doğrudan `index.html` dosyasını açmak yerine yerel sunucu kullanılmalıdır.
-
-```powershell
-python local_server.py
-```
-
-Sonra tarayıcıda şu adresi aç:
-
-```text
-http://127.0.0.1:4174/index.html
-```
-
 ## Test ve Doğrulama
 
 C# derlemesi:
@@ -105,12 +90,6 @@ JavaScript arayüz çekirdeği testleri:
 
 ```powershell
 node phase3-ui.test.mjs
-```
-
-Yerel sunucu söz dizimi kontrolü:
-
-```powershell
-python -m py_compile local_server.py
 ```
 
 Docker doğrulaması:

@@ -5,7 +5,4 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4174:4174"
-    environment:
-      HOST: 0.0.0.0
-      PORT: 4174
     restart: unless-stopped

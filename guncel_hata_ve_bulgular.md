@@ -290,7 +290,8 @@ PR #9 ana dala alınmadı. Bu PR'ın merge edilebilmesi için `DomAlgorithms.cs`
 
 **Etkilenen Dosyalar:**
 - `README.md`
-- `local_server.py`
+- `Dockerfile`
+- `nginx.conf`
 - `index.html`
 - `script.mjs`
 - `dom-core.mjs`
@@ -299,7 +300,7 @@ PR #9 ana dala alınmadı. Bu PR'ın merge edilebilmesi için `DomAlgorithms.cs`
 Arayüz `.mjs` modülleri kullanıyor. Bazı basit statik sunucular `.mjs` dosyalarını `text/plain` olarak servis ettiği için tarayıcı modülleri çalıştırmıyor; bu durumda sayfa açılıyor ancak örnek HTML yüklenmiyor, DOM ağacı oluşmuyor ve butonlar işlevsiz gibi görünüyor.
 
 **Uygulanan Çözüm:**
-`.mjs` dosyalarını `text/javascript` MIME tipiyle servis eden `local_server.py` eklendi. README'deki arayüz çalıştırma adımları `python local_server.py` ve `http://127.0.0.1:4174/index.html` akışına göre güncellendi.
+Docker runtime aşaması Nginx tabanlı hale getirildi. `nginx.conf` içinde `.mjs` dosyalarının `text/javascript` MIME tipiyle servis edilmesi sağlandı. README'deki çalıştırma akışı Docker Compose odaklı olarak güncellendi.
 
 ### Son Doğrulama Testleri
 
@@ -338,13 +339,13 @@ Bu maddeler kod çalışmasını engelleyen hata değildir. Teslimden önce ayr�
 - `docker-compose.yml`
 - `.dockerignore`
 - `README.md`
-- `local_server.py`
+- `nginx.conf`
 
 **Problem:**
 Proje yerelde çalışsa da teslim kriterlerinde istenen tek komutla ayağa kaldırma akışı eksikti. Ayrıca `.mjs` modüllerinin doğru MIME tipiyle sunulması gerektiği için sıradan dosya açma yöntemi arayüzü güvenilir şekilde çalıştırmıyordu.
 
 **Uygulanan Çözüm:**
-Çok aşamalı Dockerfile eklendi. Build aşamasında .NET 9 SDK ile proje derleniyor, runtime aşamasında Python tabanlı hafif statik sunucu arayüzü servis ediyor. `docker-compose.yml` ile uygulama `4174` portundan tek komutla çalıştırılabilir hale getirildi. `local_server.py`, Docker içinde `0.0.0.0`, yerelde ise varsayılan olarak `127.0.0.1` üzerinden çalışacak şekilde yapılandırıldı.
+Çok aşamalı Dockerfile eklendi. Build aşamasında .NET 9 SDK ile proje derleniyor, runtime aşamasında Nginx arayüzü servis ediyor. `docker-compose.yml` ile uygulama `4174` portundan tek komutla çalıştırılabilir hale getirildi.
 
 ### Farklı Düğüm Sayılarıyla Test Etme Akışının Belirsiz Olması
 
@@ -378,7 +379,7 @@ DOM oluşturulduğunda ilk görünür düğüm otomatik seçilecek şekilde `fir
 - `index.html`
 - `script.mjs`
 - `dom-core.mjs`
-- `local_server.py`
+- `nginx.conf`
 - `README.md`
 
 **Problem:**
@@ -394,10 +395,25 @@ Kullanıcıya görünen başlık, buton, panel, metrik, durum, hata ve uyarı me
 - `phase3-ui.test.mjs`
 - `Dockerfile`
 - `docker-compose.yml`
-- `local_server.py`
+- `nginx.conf`
 
 **Problem:**
 Docker, arayüz metinleri, sentetik düğüm üretimi ve düğüm ayrıntısı düzeltmeleri sonrasında tüm projenin yeniden doğrulanması gerekiyordu.
 
 **Uygulanan Çözüm:**
-`dotnet build`, `node phase3-ui.test.mjs`, `python -m py_compile local_server.py` ve `docker compose up --build -d` çalıştırıldı. Docker build sırasında .NET Release derlemesi başarılı oldu. Container üzerinden `index.html`, `script.mjs` ve `dom-core.mjs` dosyalarının `200` döndüğü ve `.mjs` dosyalarının `text/javascript` MIME tipiyle servis edildiği doğrulandı.
+`dotnet build`, `node phase3-ui.test.mjs` ve `docker compose up --build -d` çalıştırıldı. Docker build sırasında .NET Release derlemesi başarılı oldu. Container üzerinden `index.html`, `script.mjs` ve `dom-core.mjs` dosyalarının `200` döndüğü ve `.mjs` dosyalarının `text/javascript` MIME tipiyle servis edildiği doğrulandı.
+
+### Python Yerel Sunucu Dosyasının Gereksiz Hale Gelmesi
+
+**Etkilenen Dosyalar:**
+- `local_server.py`
+- `Dockerfile`
+- `docker-compose.yml`
+- `nginx.conf`
+- `README.md`
+
+**Problem:**
+Docker Compose tek komutla çalıştırma akışı eklendikten sonra `python local_server.py` komutu ve bu dosyaya bağlı runtime yapısı gereksiz tekrar oluşturuyordu. Kullanıcı açısından iki ayrı çalıştırma yöntemi kafa karıştırıcıydı.
+
+**Uygulanan Çözüm:**
+`local_server.py` kaldırıldı. Docker runtime aşaması Nginx'e taşındı. README, Docker Compose'u tek resmi çalıştırma yolu olarak gösterecek şekilde sadeleştirildi. Compose içindeki Python'a özel `HOST` ve `PORT` ortam değişkenleri kaldırıldı.
